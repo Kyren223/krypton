@@ -1,6 +1,8 @@
-#include <stdio.h>
+#include "base.c"
+#include "platform.h"
 
-int main(void) {
-    printf("hello, world!\n");
-    return 0;
+int KryptonMain() {
+  // char msg[3] = { 'h', 'e', 'y' };
+  PlatformWriteStdout(S("Hey"));
+  return 0;
 }
