@@ -38,7 +38,18 @@ if [ -v release ]; then compile="$compile_release"; fi
 # --- Prep Directories --------------------------------------------------------
 mkdir -p build
 
-# --- Build  ------------------------------------------------------------------
+# --- Build & Run Metaprogram -------------------------------------------------
+if [ -v no_meta ]; then echo "[skipping metagen]"; fi
+if [ ! -v no_meta ]
+then
+  cd build
+  $compile_debug ../src/metagen/metagen_main.c $out metagen
+  find ../src -type f -name '*.meta.*' -delete # Clean
+  ./metagen || { echo "[ERROR] metagen failed with exit code $?"; exit 1; }
+  cd ..
+fi
+
+# --- Build Everything (@build_targets) ---------------------------------------
 cd build
 if [ -v krypton ]; then didbuild=1 && $compile ../src/krypton/krypton_main.c     $out krypton; fi
 cd ..
