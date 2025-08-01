@@ -9,6 +9,7 @@
 #define DEBUG 0
 
 #define StrEq(s1, s2) !strcmp(s1, s2)
+#define Strlen(str) sizeof("" str)-1
 
 typedef struct Pad {
 	int first;
@@ -38,8 +39,65 @@ char *ReadFileContents(char *path, int *filelen) {
 	return contents;
 }
 
-void GeneratePrototypes(char *srcPath, char *destPath, char *define)
+void GenDefsPrototypes(char *srcPath, char *destPath, char *define)
 {
+	int fileLen = 0;
+	char *src = ReadFileContents(srcPath, &fileLen);
+	if (src == 0) return;
+
+	FILE *file = fopen(destPath, "w");
+	fprintf(file, "// This header is generated, DO NOT EDIT!\n");
+	fprintf(file, "\n#ifdef %s\n", define);
+
+	struct Keyword { char *str; int len; int track; char *prepend; char *append; int endOffset; } keywords[] = {
+		{ .str = "struct ", .len = 7, .prepend = "typedef ", .append = ";", .endOffset = -1 },
+		{ .str = "enum ", .len = 5, .prepend = "typedef ", .append = ";", .endOffset = -1 },
+		{ .str = "union ", .len = 6, .prepend = "typedef ", .append = ";", .endOffset = -1 },
+		{ .str = "/// ---", .len = 7, .prepend = "", .append = "", .endOffset = -1 },
+	};
+
+	int count = -1;
+	while (++count < fileLen)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			struct Keyword *kw = keywords + i;
+			if (src[count] != kw->str[kw->track++]) kw->track = 0;
+			if (kw->track == kw->len)
+			{
+				int copyStart = count;
+				while (src[++count] != '\n');
+				if (i <= 2)
+				{
+					if (src[copyStart - kw->len] == '\n' &&
+					    src[count + 1] == '{') // ignore existing prototypes
+					{
+						fprintf(file, "%s%s%.*s%.*s%s\n",
+						        kw->prepend,
+						        kw->str,
+						        (count - copyStart + kw->endOffset), (src + copyStart),
+						        (count - copyStart + kw->endOffset), (src + copyStart),
+						        kw->append);
+					}
+				}
+				else
+				{
+					fprintf(file, "\n%s%.*s%s\n", kw->str,
+					        (count - copyStart + kw->endOffset), (src + copyStart),
+					        kw->append);
+				}
+				kw->track = 0;
+			}
+		}
+	}
+
+	fprintf(file, "\n#endif");
+
+	free(src);
+	fclose(file);
+}
+
+void GenFunctionPrototypes(char *srcPath, char *destPath, char *define) {
 	int filelen = 0;
 	char *src = ReadFileContents(srcPath, &filelen);
 	if (src == 0) return;
@@ -47,13 +105,15 @@ void GeneratePrototypes(char *srcPath, char *destPath, char *define)
 	FILE *file = fopen(destPath, "w");
   fprintf(file, "// This header is generated, DO NOT EDIT!\n");
 	fprintf(file, "\n#ifndef %s\n", define);
-	fprintf(file, "\n#define %s\n", define);
+	fprintf(file, "#define %s\n", define);
+	// fprintf(file, "\n#include \"base.h\"\n");
 
 	struct Keyword { char *str; int len; char end; int track; char *append; int endOffset; } keywords[] = {
-		{ .str = "pub fn", .len = 8, .end = ')', .append = ";" },
-		{ .str = "external fn", .len = 15, .end = ')', .append = ";" },
-		{ .str = "/// ---", .len = 7, .end = '\n', .append = "", .endOffset = -2 },
+		{ .str = "pub fn", .len = Strlen("pub fn"), .end = ')', .append = ";" },
+		{ .str = "external fn", .len = Strlen("external fn"), .end = ')', .append = ";" },
+		// { .str = "/// ---", .len = Strlen("/// ---"), .end = '\n', .append = "", .endOffset = -2 },
 	};
+  const int keylen = sizeof(keywords)/sizeof(struct Keyword);
 
 	int padCount = 0;
 	Pad pads[1024] = {0};
@@ -61,12 +121,18 @@ void GeneratePrototypes(char *srcPath, char *destPath, char *define)
 	int count = -1;
 	while (++count < filelen)
 	{
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < keylen; ++i)
 		{
 			struct Keyword *kw = keywords + i;
 			if (src[count] != kw->str[kw->track++]) kw->track = 0;
+      if (kw->track > 0) {
+        // printf("src[count] %c | %c kw->str | kw->track\n", src[count], kw->str[kw->track], kw->track);
+      }
 			if (kw->track == kw->len)
 			{
+        if (DEBUG) {
+          printf("pre-gen keyword: %s\n", kw->str);
+        }
 				int copyStart = (count - kw->track);
 				if (copyStart == 0 || src[copyStart - 1] == '\r' || src[copyStart - 1] == '\n')
 				{
@@ -91,6 +157,9 @@ void GeneratePrototypes(char *srcPath, char *destPath, char *define)
 					}
 					while (src[count++] != kw->end);
 				}
+        if (DEBUG) {
+          printf("post-gen keyword: %s\n", kw->str);
+        }
 				kw->track = 0;
 			}
 		}
@@ -100,7 +169,7 @@ void GeneratePrototypes(char *srcPath, char *destPath, char *define)
 	count = -1;
 	while (++count < filelen)
 	{
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < keylen; ++i)
 		{
 			struct Keyword *kw = keywords + i;
 			if (src[count] != kw->str[kw->track++]) kw->track = 0;
@@ -212,13 +281,17 @@ void GenerateHeader(char *path) {
     printf("extension: '%s' (%d)\n", path + index, index);
   }
 
+  if (!StrEq(path+index, ".c")) {
+    return; // only metagen for .c files
+  }
+
   int subIndex = ExtensionIndex(path, index);
   if (DEBUG) {
     printf("subext: '%s' (%d)\n", path + subIndex, subIndex);
   }
   if (subIndex != -1) {
     int matching = 1;
-    for (int i = 0; i < sizeof(extmeta)-1; i++) {
+    for (int i = 0; i < strlen(extmeta); i++) {
       if (path[subIndex+i] != extmeta[i]) {
         matching = 0;
         break;
@@ -233,13 +306,13 @@ void GenerateHeader(char *path) {
   }
 
   // ../filename.c -> ../filename.meta.h
-  char metapath[length+sizeof(extmeta)-1];
+  char metapath[length+strlen(extmeta)];
   strcpy(metapath, path);
-  for (int i = 0; i < sizeof(extmeta)-1; i++) {
+  for (int i = 0; i < strlen(extmeta); i++) {
     metapath[index + i] = extmeta[i];
     // printf("index: '%d' | i: %d\n", index, i);
   }
-  int metalen = index + sizeof(extmeta)-1;
+  int metalen = index + strlen(extmeta);
   metapath[metalen] = 0;
 
   if (DEBUG) {
@@ -263,7 +336,7 @@ void GenerateHeader(char *path) {
 
   for (int i = 0; i < defineLen; i++) {
     char c = define[i];
-    if ('a' <= c && c <= 'Z') {
+    if ('a' <= c && c <= 'z') {
       c -= 'a' - 'A';
     } else if (c == '.') {
       c = '_';
@@ -271,7 +344,8 @@ void GenerateHeader(char *path) {
     define[i] = c;
   }
 
-  GeneratePrototypes(path, metapath, define);
+  GenFunctionPrototypes(path, metapath, define);
+  GenDefsPrototypes(path, metapath, define);
   if (DEBUG) {
     printf("generated '%s'\n", metapath);
   }
@@ -291,7 +365,7 @@ int main() {
       continue;
     }
 
-    char path[sizeof(dirname)-1 + 255] = {0};
+    char path[strlen(dirname) + 255];
     strcpy(path, dirname);
     strcat(path, entry->d_name);
 

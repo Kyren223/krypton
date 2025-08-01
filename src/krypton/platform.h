@@ -4,8 +4,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include "base.h"
+#include "krypton_main.h"
 #include "platform.meta.h"
-#include "base.c"
 
 int PlatformWriteStdout(String s);
 

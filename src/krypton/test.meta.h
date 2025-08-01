@@ -1,5 +1,5 @@
 // This header is generated, DO NOT EDIT!
 
-#ifdef KRYPTON_MAIN_META_H
+#ifdef TEST_META_H
 
 #endif

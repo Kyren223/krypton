@@ -1,9 +1,9 @@
 // Copyright (c) Kyren223
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef KRYPTON_MAIN_H
+#define KRYPTON_MAIN_H
 
-#include "main.meta.h"
+#include "krypton_main.meta.h"
 
 #endif

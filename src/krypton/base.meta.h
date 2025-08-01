@@ -1,7 +1,5 @@
 // This header is generated, DO NOT EDIT!
 
-#ifndef base_meta_h
-
-#define base_meta_h
+#ifdef BASE_META_H
 
 #endif
