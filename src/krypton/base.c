@@ -1,5 +1,10 @@
+// Copyright (c) Kyren223
+// Licensed under the MIT license (https://opensource.org/license/mit/)
+
 #pragma once
 
+#define pub
+#define external
 #define fn static
 
 #include <stdint.h>
@@ -28,6 +33,8 @@ typedef intptr_t isize;
 
 #define true 1
 #define false 0
+
+////////////////////////////////
 
 #define S(cstr) ((String){.value = ("" cstr), .length = sizeof("" cstr) - 1})
 

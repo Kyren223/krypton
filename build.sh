@@ -6,7 +6,6 @@ START_TIME=$(date +%s.%3N)
 
 # --- Unpack Arguments --------------------------------------------------------
 for arg in "$@"; do declare $arg='1'; done
-if [ ! -v win ];     then linux=1; fi
 if [ ! -v gcc ];     then clang=1; fi
 if [ ! -v release ]; then debug=1; fi
 if [ -v debug ];     then echo "[debug mode]"; fi
@@ -35,16 +34,21 @@ if [ -v clang ];   then compile_release="$clang_release"; fi
 if [ -v clang ];   then out="$clang_out"; fi
 if [ -v debug ];   then compile="$compile_debug"; fi
 if [ -v release ]; then compile="$compile_release"; fi
-if [ -v linux ];   then platform="linux"; fi
-if [ -v win ];     then platform="windows"; fi
 
 # --- Prep Directories --------------------------------------------------------
 mkdir -p build
 
 # --- Build  ------------------------------------------------------------------
 cd build
-$compile ../src/platform_$platform.c $out krypton
+if [ -v krypton ]; then didbuild=1 && $compile ../src/krypton/krypton_main.c     $out krypton; fi
 cd ..
+
+# --- Warn On No Builds -------------------------------------------------------
+if [ ! -v didbuild ]
+then
+  echo "[WARNING] no valid build target specified; must use build target names as arguments to this script, like \`./build.sh krypton\` or \`./build.sh metagen\`."
+  exit 1
+fi
 
 END_TIME=$(date +%s.%4N)
 echo "[ctime $(awk "BEGIN {printf \"%.3f\", ${END_TIME} - ${START_TIME}}") seconds]"
