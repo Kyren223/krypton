@@ -272,7 +272,9 @@ void GenerateHeader(char *path) {
   }
 
   GeneratePrototypes(path, metapath, define);
-  printf("generated '%s'\n", metapath);
+  if (DEBUG) {
+    printf("generated '%s'\n", metapath);
+  }
 }
 
 int main() {
