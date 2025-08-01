@@ -2,6 +2,8 @@
 set -eu
 cd "$(dirname "$0")"
 
+START_TIME=$(date +%s.%3N)
+
 # --- Unpack Arguments --------------------------------------------------------
 for arg in "$@"; do declare $arg='1'; done
 if [ ! -v win ];     then linux=1; fi
@@ -43,3 +45,6 @@ mkdir -p build
 cd build
 $compile ../src/platform_$platform.c $out krypton
 cd ..
+
+END_TIME=$(date +%s.%4N)
+echo "[ctime $(awk "BEGIN {printf \"%.3f\", ${END_TIME} - ${START_TIME}}") seconds]"
