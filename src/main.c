@@ -3,6 +3,8 @@
 
 int KryptonMain() {
   // char msg[3] = { 'h', 'e', 'y' };
-  PlatformWriteStdout(S("Hey"));
+  if (true) {
+    PlatformWriteStdout(S("Hey"));
+  }
   return 0;
 }
