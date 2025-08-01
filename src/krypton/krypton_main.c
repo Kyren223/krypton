@@ -17,6 +17,7 @@
 
 pub fn int KryptonMain() {
   // char msg[3] = { 'h', 'e', 'y' };
+  weird();
   if (true) {
     PlatformWriteStdout(S("Hey"));
   }

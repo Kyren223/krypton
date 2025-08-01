@@ -1,5 +1,6 @@
 // This header is generated, DO NOT EDIT!
 
-#ifdef BASE_META_H
+#ifndef BASE_META_H
+#define BASE_META_H
 
 #endif

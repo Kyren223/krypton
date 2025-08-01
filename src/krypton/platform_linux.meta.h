@@ -1,5 +1,6 @@
 // This header is generated, DO NOT EDIT!
 
-#ifdef PLATFORM_LINUX_META_H
+#ifndef PLATFORM_LINUX_META_H
+#define PLATFORM_LINUX_META_H
 
 #endif

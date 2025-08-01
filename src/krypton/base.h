@@ -289,7 +289,7 @@ typedef intptr_t isize;
 #define S(cstr) ((String){.value = ("" cstr), .length = sizeof("" cstr) - 1})
 
 // TODO(kyren): remove this
-// typedef struct String String;
+typedef struct String String;
 
 struct String {
   char *value;

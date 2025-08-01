@@ -1,5 +1,6 @@
 // This header is generated, DO NOT EDIT!
 
-#ifdef TEST_META_H
+#ifndef TEST_META_H
+#define TEST_META_H
 
 #endif
