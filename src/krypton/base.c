@@ -2,19 +2,8 @@
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
 #include "base.h"
-#include <stdlib.h>
 
-////////////////////////////////
-// NOTE(kyren): Asserts
-
-fn void assert(b8 ok) {
-  if (!ok) {
-    abort();
-  }
-}
-
-////////////////////////////////
-// NOTE(kyren): Strings
+/// --- Strings --- ///
 
 fn String StrFrom(String s, u64 from) {
   if (from < 0) {
@@ -48,3 +37,11 @@ fn String StrFromTo(String s, u64 from, u64 to) {
   };
 }
 
+////////////////////////////////
+/// --- NOTE(kyren): Asserts
+
+fn void assert(b8 ok) {
+  if (!ok) {
+    UNREACHABLE();
+  }
+}

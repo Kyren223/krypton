@@ -245,35 +245,44 @@
 #endif
 
 ////////////////////////////////
+/// --- NOTE(kyren): Asserts
+
+#if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
+# define UNREACHABLE() __builtin_unreachable()
+# elif defined(COMPILER_MSVC)
+# define UNREACHABLE() __assume(0)
+#else
+# error You tried to build with an unsupported architecture. Currently, only building in x64 mode is supported.
+#endif
+
+////////////////////////////////
 // NOTE(kyren): Types
 
 #include <stdint.h>
 
-typedef uint8_t u8;
+typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef float f32;
-typedef double f64;
-typedef int8_t b8;
-typedef int32_t b32;
-typedef int64_t b64;
-typedef int32_t rune; // Unicode codepoint
-typedef uintptr_t usize;
-typedef intptr_t isize;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+typedef float    f32;
+typedef double   f64;
+typedef int8_t   b8;
+typedef int32_t  b32;
+typedef int64_t  b64;
+typedef int32_t  rune; // Unicode codepoint
 
-#define enum8(type) u8
+#define enum8(type)  u8
 #define enum16(type) u16
 #define enum32(type) u32
 #define enum64(type) u64
 
-#define true 1
+#define true  1
 #define false 0
-#define null 0
+#define null  0
 
 ////////////////////////////////
 // NOTE(kyren): Metagen
