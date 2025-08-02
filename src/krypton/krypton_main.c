@@ -1,18 +1,16 @@
 // Copyright (c) Kyren223
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
-////////////////////////////////
-// NOTE(kyren): Includes
+/// --- Includes --- ///
 
-// NOTE(kyren): [h]
+/// --- Headers --- ///
 #include "base.h"
 
-// NOTE(kyren): [c]
+/// --- C/C++ Files --- ///
 #include "base.c"
 #include "platform.c"
 
-////////////////////////////////
-// NOTE(kyren): Entry point
+/// --- Entry Point --- ///
 
 i32 KryptonMain() {
   PlatformWriteStdout(S("Hey\n"));

@@ -4,8 +4,7 @@
 #ifndef BASE_H
 #define BASE_H
 
-////////////////////////////////
-// NOTE(kyren): Clang OS/Arch
+/// --- Clang OS/Arch --- ///
 
 #if defined(__clang__)
 
@@ -33,8 +32,7 @@
 #  error Architecture not supported.
 # endif
 
-////////////////////////////////
-// NOTE(kyren): MSVC OS/Arch
+/// --- MSVC OS/Arch--- ///
 
 #elif defined(_MSC_VER)
 
@@ -78,8 +76,7 @@
 #  error Architecture not supported.
 # endif
 
-////////////////////////////////
-// NOTE(kyren): GCC OS/Arch
+/// --- GCC OS/Arch --- ///
 
 #elif defined(__GNUC__) || defined(__GNUG__)
 
@@ -107,8 +104,7 @@
 # error Compiler not supported.
 #endif
 
-////////////////////////////////
-// NOTE(kyren): Arch
+/// --- Arch--- ///
 
 #if defined(ARCH_X64)
 # define ARCH_64BIT 1
@@ -122,8 +118,7 @@
 # error Endianness of this architecture is not supported.
 #endif
 
-////////////////////////////////
-// NOTE(kyren): Language
+/// --- Language--- ///
 
 #if defined(__cplusplus)
 # define LANG_CPP 1
@@ -131,8 +126,7 @@
 # define LANG_C 1
 #endif
 
-////////////////////////////////
-// NOTE(kyren): Build Option
+/// --- Build Options --- ///
 
 #if !defined(BUILD_DEBUG)
 # define BUILD_DEBUG 1
@@ -188,8 +182,7 @@
 
 #define BUILD_TITLE_STRING_LITERAL BUILD_TITLE " (" BUILD_VERSION_STRING_LITERAL " " BUILD_RELEASE_PHASE_STRING_LITERAL ") - " __DATE__ "" BUILD_GIT_HASH_STRING_LITERAL_APPEND BUILD_MODE_STRING_LITERAL_APPEND
 
-////////////////////////////////
-// NOTE(kyren): Zero All Undefined Options
+/// --- Zero All Undefined Options --- ///
 
 #if !defined(ARCH_32BIT)
 # define ARCH_32BIT 0
@@ -234,8 +227,7 @@
 # define LANG_C 0
 #endif
 
-////////////////////////////////
-// NOTE(kyren): Unsupported Errors
+/// --- Unsupported Errors --- ///
 
 #if ARCH_X86
 # error You tried to build in x86 (32 bit) mode, but currently, only building in x64 (64 bit) mode is supported.
@@ -244,8 +236,7 @@
 # error You tried to build with an unsupported architecture. Currently, only building in x64 mode is supported.
 #endif
 
-////////////////////////////////
-/// --- NOTE(kyren): Asserts
+/// --- Asserts --- ///
 
 #if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
 # define UNREACHABLE() __builtin_unreachable()
@@ -255,8 +246,7 @@
 # error You tried to build with an unsupported architecture. Currently, only building in x64 mode is supported.
 #endif
 
-////////////////////////////////
-// NOTE(kyren): Types
+/// --- Types --- ///
 
 #include <stdint.h>
 
@@ -284,8 +274,7 @@ typedef int32_t  rune; // Unicode codepoint
 #define false 0
 #define null  0
 
-////////////////////////////////
-// NOTE(kyren): Metagen
+/// --- Metagen --- ///
 
 #define fn static
 
@@ -294,8 +283,7 @@ typedef int32_t  rune; // Unicode codepoint
 #define BASE_FUNCTIONS
 #include "generated/base.meta.h"
 
-////////////////////////////////
-// NOTE(kyren): Strings
+/// --- Strings --- ///
 
 #define S(cstr) ((String){.value = ("" cstr), .length = sizeof("" cstr) - 1})
 

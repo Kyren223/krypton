@@ -2,7 +2,29 @@
 
 #ifdef BASE_DEFS
 
-/// ---- NOTE(kyren): Assert
+/// ---- Clang OS/Arch --- //
+
+/// ---- MSVC OS/Arch--- //
+
+/// ---- GCC OS/Arch --- //
+
+/// ---- Arch--- //
+
+/// ---- Language--- //
+
+/// ---- Build Options --- //
+
+/// ---- Zero All Undefined Options --- //
+
+/// ---- Unsupported Errors --- //
+
+/// ---- Asserts --- //
+
+/// ---- Types --- //
+
+/// ---- Metagen --- //
+
+/// ---- Strings --- //
 typedef struct  String String;
 
 #endif
@@ -12,5 +34,7 @@ typedef struct  String String;
 /// --- Strings --- //
 fn String StrFrom  (String s, u64 from);
 fn String StrFromTo(String s, u64 from, u64 to);
-fn void   assert   (b8 ok);
+
+/// --- Asserts --- //
+fn void assert(b8 ok);
 #endif

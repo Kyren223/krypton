@@ -37,8 +37,7 @@ fn String StrFromTo(String s, u64 from, u64 to) {
   };
 }
 
-////////////////////////////////
-/// --- NOTE(kyren): Asserts
+/// --- Asserts --- ///
 
 fn void assert(b8 ok) {
   if (!ok) {
