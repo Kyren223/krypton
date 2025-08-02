@@ -4,6 +4,11 @@
 #ifndef PLATFORM_LINUX_H
 #define PLATFORM_LINUX_H
 
-#include "platform_linux.meta.h"
+#include "base.h"
+
+#define PLATFORM_LINUX_DEFS
+#include "generated/platform_linux.meta.h"
+#define PLATFORM_LINUX_FUNCTIONS
+#include "generated/platform_linux.meta.h"
 
 #endif

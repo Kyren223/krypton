@@ -7,11 +7,12 @@
 ////////////////////////////////
 // NOTE(kyren): Metagen
 
-#include "base.meta.h"
-
-#define pub
-#define external
 #define fn static
+
+#define BASE_DEFS
+#include "generated/base.meta.h"
+#define BASE_FUNCTIONS
+#include "generated/base.meta.h"
 
 ////////////////////////////////
 // NOTE(kyren): Clang OS/Arch
@@ -288,10 +289,8 @@ typedef intptr_t isize;
 
 #define S(cstr) ((String){.value = ("" cstr), .length = sizeof("" cstr) - 1})
 
-// TODO(kyren): remove this
-typedef struct String String;
-
-struct String {
+struct String 
+{
   char *value;
   u64 length;
 };

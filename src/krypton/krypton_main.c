@@ -5,7 +5,6 @@
 // NOTE(kyren): Includes
 
 // NOTE(kyren): [h]
-#include "platform.h"
 #include "base.h"
 
 // NOTE(kyren): [c]
@@ -13,14 +12,10 @@
 #include "platform.c"
 
 ////////////////////////////////
-// NOTE(kyren): Top-Level Execution Types
+// NOTE(kyren): Entry point
 
-pub fn int KryptonMain() {
-  // char msg[3] = { 'h', 'e', 'y' };
-  weird();
-  if (true) {
-    PlatformWriteStdout(S("Hey"));
-  }
+i32 KryptonMain() {
+  PlatformWriteStdout(S("Hey\n"));
   return 0;
 }
 

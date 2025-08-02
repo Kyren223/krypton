@@ -3,7 +3,3 @@
 
 #include "base.h"
 
-static void weird() {
-
-}
-

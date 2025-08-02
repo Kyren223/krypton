@@ -1,18 +1,27 @@
 // Copyright (c) Kyren223
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
-#include "platform.h"
-#include "krypton_main.meta.h"
+////////////////////////////////
+// NOTE(kyren): Linux entry point
+
+#include "krypton_main.h"
+
+int main() {
+  return KryptonMain();
+}
+
+////////////////////////////////
+// NOTE(kyren): Includes
+
+#include "platform_linux.h"
 
 #include <sys/mman.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
-int main() {
-  KryptonMain();
-  return 0;
-}
+////////////////////////////////
+// NOTE(kyren): Platform APi
 
-int PlatformWriteStdout(String str) {
+i32 PlatformWriteStdout(String str) {
   return write(1, str.value, str.length);
 }

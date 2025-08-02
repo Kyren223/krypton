@@ -5,9 +5,7 @@
 #define PLATFORM_H
 
 #include "base.h"
-#include "krypton_main.h"
-#include "platform.meta.h"
 
-int PlatformWriteStdout(String s);
+i32 PlatformWriteStdout(String str);
 
 #endif

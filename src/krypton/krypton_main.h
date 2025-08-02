@@ -4,6 +4,8 @@
 #ifndef KRYPTON_MAIN_H
 #define KRYPTON_MAIN_H
 
-#include "krypton_main.meta.h"
+#include "base.h"
+
+i32 KryptonMain();
 
 #endif
