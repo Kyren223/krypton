@@ -11,4 +11,9 @@
 #define PLATFORM_LINUX_FUNCTIONS
 #include "generated/platform_linux.meta.h"
 
+struct File 
+{
+  int fd;
+};
+
 #endif

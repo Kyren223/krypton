@@ -8,4 +8,13 @@
 
 i32 PlatformWriteStdout(String str);
 
+/// --- File API --- ///
+
+typedef struct File File;
+
+File PlatformOpenFile(String path);
+void PlatformCloseFile(File file);
+String PlatformReadFile(File file, void *location, i32 size);
+b8 PlatformIsValidFile(File file);
+
 #endif
