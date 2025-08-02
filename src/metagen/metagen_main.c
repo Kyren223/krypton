@@ -42,7 +42,7 @@ void GenFunctionPrototypes(char *srcPath, char *destPath, char *define, int appe
 	{
 		fprintf(file, "// This header is generated, DO NOT EDIT!\n");
 	}
-	fprintf(file, "\n#ifdef %s\n", define);
+	fprintf(file, "\n#ifdef %s", define);
 
 	struct Keyword { char *str; int len; char end; int track; char *append; int endOffset; } keywords[] = {
 		{ .str = "fn", .len = 2, .end = ')', .append = ";" },
@@ -175,7 +175,7 @@ void GenFunctionPrototypes(char *srcPath, char *destPath, char *define, int appe
 		}
 	}
 
-	fprintf(file, "\n#endif");
+	fprintf(file, "\n\n#endif");
 
 	free(src);
 	fclose(file);

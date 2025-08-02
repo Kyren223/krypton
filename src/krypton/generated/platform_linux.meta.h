@@ -5,10 +5,10 @@
 #endif
 #ifdef PLATFORM_LINUX_FUNCTIONS
 
-
 /// --- Linux entry point --- //
 
 /// --- Includes --- //
 
 /// --- Platform APi --- //
+
 #endif
