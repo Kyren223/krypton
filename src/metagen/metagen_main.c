@@ -245,19 +245,8 @@ int main(void)
 	GenDefsPrototypes("../src/krypton/base.h", "../src/krypton/generated/base.meta.h", "BASE_DEFS");
 	GenFunctionPrototypes("../src/krypton/base.c", "../src/krypton/generated/base.meta.h", "BASE_FUNCTIONS", 1);
 
-	// platform Linux
+	// Platform Linux
 	GenDefsPrototypes("../src/krypton/platform_linux.h", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_DEFS");
 	GenFunctionPrototypes("../src/krypton/platform_linux.c", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_FUNCTIONS", 1);
-
-	// // Program
-	// GenDefsPrototypes("../src/Program/Program.h", "../Source/Program/Meta/ProgramLOD.meta.h", "PROG_DEFS");
-	// GenFunctionPrototypes("../src/Program/Program.c", "../Source/Program/Meta/ProgramLOD.meta.h", "PROG_FUNCTIONS", 1);
-	//
-	// // Render layer
-	// GenDefsPrototypes("../src/Program/Render.h", "../Source/Program/Meta/RenderLOD.meta.h", "RENDER_DEFS");
-	// GenFunctionPrototypes("../src/Program/Render.c", "../Source/Program/Meta/RenderLOD.meta.h", "RENDER_FUNCTIONS", 1);
-	//
-	// // Platform
-	// GenDefsPrototypes("../src/Program/Platform.h", "../Source/Program/Meta/PlatformLOD.meta.h", "PLATFORM_DEFS");
 }
 

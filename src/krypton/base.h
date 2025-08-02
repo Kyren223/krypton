@@ -5,16 +5,6 @@
 #define BASE_H
 
 ////////////////////////////////
-// NOTE(kyren): Metagen
-
-#define fn static
-
-#define BASE_DEFS
-#include "generated/base.meta.h"
-#define BASE_FUNCTIONS
-#include "generated/base.meta.h"
-
-////////////////////////////////
 // NOTE(kyren): Clang OS/Arch
 
 #if defined(__clang__)
@@ -283,6 +273,17 @@ typedef intptr_t isize;
 
 #define true 1
 #define false 0
+#define null 0
+
+////////////////////////////////
+// NOTE(kyren): Metagen
+
+#define fn static
+
+#define BASE_DEFS
+#include "generated/base.meta.h"
+#define BASE_FUNCTIONS
+#include "generated/base.meta.h"
 
 ////////////////////////////////
 // NOTE(kyren): Strings
