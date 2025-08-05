@@ -8,6 +8,12 @@
 
 i32 PlatformWriteStdout(String str);
 
+/// --- Memory API --- ///
+
+void *MemCopy(void *dest, void *src, u64 size);
+void *MemSet(void *ptr, u8 value, u64 size);
+i32 MemCmp(void *ptr1, void *ptr2, u64 count);
+
 /// --- File API --- ///
 
 typedef struct File File;

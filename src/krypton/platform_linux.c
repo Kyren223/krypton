@@ -5,6 +5,7 @@
 
 #include "base.h"
 #include "krypton_main.h"
+#include <string.h>
 
 int main() {
   return KryptonMain();
@@ -23,6 +24,20 @@ int main() {
 
 i32 PlatformWriteStdout(String str) {
   return write(1, str.value, str.length);
+}
+
+/// --- Memory API --- ///
+
+void *MemCopy(void *dest, void *src, u64 size) {
+  return memcpy(dest, src, size);
+}
+
+void *MemSet(void *ptr, u8 value, u64 size) {
+  return memset(ptr, value, size);
+}
+
+i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
+  return memcmp(ptr1, ptr2, count);
 }
 
 /// --- File API --- ///

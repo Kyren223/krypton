@@ -27,6 +27,10 @@
 /// ---- Strings --- //
 typedef struct  String String;
 
+/// ---- Flags --- //
+
+/// ---- Memory --- //
+
 #endif
 #ifdef BASE_FUNCTIONS
 

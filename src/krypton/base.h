@@ -293,4 +293,21 @@ struct String
   u64 length;
 };
 
+/// --- Flags --- ///
+
+#define Bit(x) (1 << (x))
+#define BBit(x) ((u64)1 << (x))
+#define HasBit(n, pos) ((n) & (1 << (pos)))
+
+#define FlagSet(n, f) ((n) |= (f))
+#define FlagClear(n, f) ((n) &= ~(f))
+#define FlagToggle(n, f) ((n) ^= (f))
+#define FlagExists(n, f) (((n) & (f)) == (f)) // Checks if all bits in 'f' are set in 'n'
+#define FlagEquals(n, f) (((n) == (f))) // Checks if 'n' is exactly equal to 'f'
+#define FlagIntersects(n, f) (((n) & (f)) > 0) // Checks if any bits in 'f' are set in 'n'
+
+/// --- Memory --- ///
+
+#define MemZero(ptr, size) MemSet(ptr, 0, size)
+
 #endif
