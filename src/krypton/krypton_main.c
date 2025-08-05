@@ -6,6 +6,7 @@
 /// --- Headers --- ///
 #include "base.h"
 #include "platform.h"
+#include "krypton_main.h"
 
 /// --- C/C++ Files --- ///
 #include "base.c"
@@ -13,21 +14,24 @@
 
 /// --- Entry Point --- ///
 
-i32 KryptonMain() {
-  PlatformWriteStdout(S("Hey\n"));
+int main(int argc, char **argv) {
+  // assert(argc);
+  return KryptonMain(argc, null);
+}
+
+fn i32 KryptonMain(i32 argc, String *argv) {
+  Printf("Welcome to %s - made by %s%d\n", "Krypton", "Kyren", 223);
 
   File file = PlatformOpenFile(S("file.txt"));
   if (!PlatformIsValidFile(file)) {
-    PlatformWriteStdout(S("Invalid file\n"));
+    Print(S("Invalid file\n"));
     return 1;
   }
 
-  // TODO(kyren): read file
   char buf[1024];
   String contents = PlatformReadFile(file, buf, 1024);
-  PlatformWriteStdout(S("'"));
-  PlatformWriteStdout(contents);
-  PlatformWriteStdout(S("'\n"));
+  Printf("'%s'\n", contents.value);
+
 
   // TODO(kyren): check if closed properly
   PlatformCloseFile(file);

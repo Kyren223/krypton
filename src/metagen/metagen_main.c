@@ -245,6 +245,10 @@ int main(void)
 	GenDefsPrototypes("../src/krypton/base.h", "../src/krypton/generated/base.meta.h", "BASE_DEFS");
 	GenFunctionPrototypes("../src/krypton/base.c", "../src/krypton/generated/base.meta.h", "BASE_FUNCTIONS", 1);
 
+  // Main
+	GenDefsPrototypes("../src/krypton/krypton_main.h", "../src/krypton/generated/krypton_main.meta.h", "KRYPTON_MAIN_DEFS");
+	GenFunctionPrototypes("../src/krypton/krypton_main.c", "../src/krypton/generated/krypton_main.meta.h", "KRYPTON_MAIN_FUNCTIONS", 1);
+
 	// Platform Linux
 	GenDefsPrototypes("../src/krypton/platform_linux.h", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_DEFS");
 	GenFunctionPrototypes("../src/krypton/platform_linux.c", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_FUNCTIONS", 1);

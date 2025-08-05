@@ -35,8 +35,10 @@ typedef struct  String String;
 #ifdef BASE_FUNCTIONS
 
 /// --- Strings --- //
-fn String StrFrom  (String s, u64 from);
-fn String StrFromTo(String s, u64 from, u64 to);
+fn i32    Printf         (const char *fmt, ...);
+fn char   *PrintfCallback(const char *buf, void *user, int len);
+fn String StrFrom        (String s, u64 from);
+fn String StrFromTo      (String s, u64 from, u64 to);
 
 /// --- Asserts --- //
 fn void assert(b8 ok);

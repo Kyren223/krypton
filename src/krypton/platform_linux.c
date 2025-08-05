@@ -4,12 +4,7 @@
 /// --- Linux entry point --- ///
 
 #include "base.h"
-#include "krypton_main.h"
 #include <string.h>
-
-int main() {
-  return KryptonMain();
-}
 
 /// --- Includes --- ///
 
@@ -22,7 +17,8 @@ int main() {
 
 /// --- Platform API --- ///
 
-i32 PlatformWriteStdout(String str) {
+i32 Print(String str) {
+  // TODO(kyren): replace 1 with an enum/constant for stdout
   return write(1, str.value, str.length);
 }
 
@@ -65,7 +61,8 @@ String PlatformReadFile(File file, void *location, i32 size) {
   }
 
   if (n == 0) {
-    return (String){0};
+    // TODO(kyren): should this return (String){0} (null string or (String){ .value = "" } (empty string)
+    return (String){ .value = "", .length = 0 };
   }
 
   return (String){ .value = location, .length = n };

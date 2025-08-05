@@ -6,7 +6,10 @@
 
 #include "base.h"
 
-i32 PlatformWriteStdout(String str);
+#define PRINT_ERROR -1
+
+// Returns the number of bytes written or PRINT_ERROR if failed
+i32 Print(String str);
 
 /// --- Memory API --- ///
 
