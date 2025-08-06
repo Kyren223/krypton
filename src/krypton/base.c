@@ -193,7 +193,7 @@ fn Arena *ArenaAlloc_(ArenaParams *params) {
   arena->basePos = 0;
   arena->pos = ARENA_HEADER_SIZE;
   arena->commit = commitSize;
-  arena->reserveSize = reserveSize;
+  arena->reserve = reserveSize;
   arena->allocationSiteFile = params->allocationSiteFile;
   arena->allocationSiteLine = params->allocationSiteLine;
 #if ARENA_FREE_LIST
@@ -215,10 +215,10 @@ fn void ArenaRelease(Arena *arena) {
 fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, int allocationSiteLine) {
   Arena *current = arena->current;
   u64 posPre = MemAlignPow2(current->pos, align);
-  u64 posPst = posPre + size;
+  u64 posPost = posPre + size;
 
   // NOTE(kyren): chain, if needed
-  if (current->reserve < posPst && !(arena->flags & ArenaFlags_NoChain)) {
+  if (current->reserve < posPost && !(arena->flags & ArenaFlags_NoChain)) {
     Arena *newBlock = 0;
 
 #if ARENA_FREE_LIST
@@ -228,7 +228,7 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
           if (prevBlock) {
             prevBlock->prev = newBlock->prev;
           } else {
-            arena->freeLast = newBloc->prev;
+            arena->freeLast = newBlock->prev;
           }
           arena->freeSize -= newBlock->reserveSize;
           AsanUnpoisonMemoryRegion((u8*)newBlock + ARENA_HEADER_SIZE, newBlock->reserveSize - ARENA_HEADER_SIZE);
@@ -263,15 +263,15 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
 
     current = newBlock;
     posPre = MemAlignPow2(current->pos, align);
-    posPst = posPre + size;
+    posPost = posPre + size;
   }
 
   // NOTE(kyren): commit new pages, if needed
-  if (current->commit < posPst) {
-    u64 commitPstAligned = posPst + current->commitSize-1;
-    commitPstAligned -= commitPstAligned % current->commitSize;
-    u64 commitPstClamped = ClampTop(commitPstAligned, current->reserve);
-    u64 commitSize = commitPstClamped - current->commit;
+  if (current->commit < posPost) {
+    u64 commitPostAligned = posPost + current->commitSize-1;
+    commitPostAligned -= commitPostAligned % current->commitSize;
+    u64 commitPostClamped = ClampTop(commitPostAligned, current->reserve); // TODO: maybe here?
+    u64 commitSize = commitPostClamped - current->commit;
     u8 *commitPtr = (u8 *)current + current->commit;
 
     if (current->flags & ArenaFlags_LargePages) {
@@ -280,20 +280,20 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
       OsCommit(commitPtr, commitSize);
     }
 
-    current->commit = commitPstClamped;
+    current->commit = commitPostClamped;
   }
 
   // NOTE(kyren): push onto current block
   void *result = 0;
-  if (current->commit >= posPst) {
+  if (current->commit >= posPost) {
     result = (u8*)current + posPre;
-    current->pos = posPst;
+    current->pos = posPost;
     AsanUnpoisonMemoryRegion(result, size);
   }
 
   // NOTE(kyren): panic on failure
   if (Unlikely(result == 0)) {
-    Printf("%s:%d runtime error: fatal allocation failure\n", current->allocationSiteFile, current->allocationSiteLine);
+    Printf("%s:%d: runtime error: fatal allocation failure\n", current->allocationSiteFile, current->allocationSiteLine);
     Printf("First created at %s:%d\n", arena->allocationSiteFile, arena->allocationSiteLine);
     OsAbort(1);
   }
@@ -315,13 +315,13 @@ fn void ArenaPopTo(Arena *arena, u64 pos) {
   for (Arena *prev = 0; current->basePos >= bigPos; current = prev) {
     prev = current->prev;
     current->pos = ARENA_HEADER_SIZE;
-    arena->free_size += current->res_size;
+    arena->freeSize += current->reserveSize;
 
     // NOTE(kyren): push
     current->prev = arena->freeLast;
     arena->freeLast = current;
 
-    AsanPoisonMemoryRegion((U8*)current + ARENA_HEADER_SIZE, current->res_size - ARENA_HEADER_SIZE);
+    AsanPoisonMemoryRegion((u8*)current + ARENA_HEADER_SIZE, current->reserveSize - ARENA_HEADER_SIZE);
   }
 #else
   for(Arena *prev = 0; current->basePos >= bigPos; current = prev) {
