@@ -1,26 +1,17 @@
 // Copyright (c) Kyren223
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
-/// --- Linux entry point --- ///
-
-#include "base.h"
-#include <string.h>
-
 /// --- Includes --- ///
 
 #include "platform_linux.h"
+#include "base.h"
 
 #include <sys/syscall.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-/// --- Platform API --- ///
-
-i32 Print(String str) {
-  // TODO(kyren): replace 1 with an enum/constant for stdout
-  return write(1, str.value, str.length);
-}
+#include <string.h>
+#include <errno.h>
 
 /// --- Memory API --- ///
 
@@ -36,6 +27,13 @@ i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
   return memcmp(ptr1, ptr2, count);
 }
 
+/// --- Print API --- ///
+
+i32 Print(String str) {
+  // TODO(kyren): replace 1 with an enum/constant for stdout
+  return write(1, str.value, str.length);
+}
+
 /// --- File API --- ///
 
 b8 PlatformIsValidFile(File file) {
@@ -47,24 +45,22 @@ File PlatformOpenFile(String path) {
   return (File){ .fd = fd };
 }
 
-void PlatformCloseFile(File file) {
-  // TODO(kyren): Add a return value to check for failure
-  close(file.fd);
+i32 PlatformCloseFile(File file) {
+  i32 result = close(file.fd);
+  return result;
 }
 
 String PlatformReadFile(File file, void *location, i32 size) {
-  u64 n = read(file.fd, location, size);
+  ssize_t n = read(file.fd, location, size);
 
   if (n == -1) {
-    // TODO(kyren): handle errors
-    UNREACHABLE();
+    return (String){0};
   }
 
   if (n == 0) {
-    // TODO(kyren): should this return (String){0} (null string or (String){ .value = "" } (empty string)
     return (String){ .value = "", .length = 0 };
   }
 
-  return (String){ .value = location, .length = n };
+  return (String){ .value = location, .length = (u64)n };
 }
 

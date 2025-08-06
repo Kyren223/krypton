@@ -65,7 +65,35 @@ fn String StrFromTo(String s, u64 from, u64 to) {
 /// --- Asserts --- ///
 
 fn void assert(b8 ok) {
+  // TODO(kyren): fix assert to be a macro so it reports the place it was used
   if (!ok) {
     UNREACHABLE();
   }
 }
+
+/// --- Files --- ///
+
+String ReadFile(void *buf, String path, i32 size) {
+  // Buf is only used when length > 0 for the returned string
+
+  File file = PlatformOpenFile(path);
+
+  if (!PlatformIsValidFile(file)) {
+    return (String){0};
+  }
+
+  String s = PlatformReadFile(file, buf, size);
+
+  i32 result = PlatformCloseFile(file);
+
+  if (s.value == null) {
+    return (String){0};
+  }
+
+  if (result == FILE_ERROR) {
+    return (String){0};
+  }
+
+  return s;
+}
+

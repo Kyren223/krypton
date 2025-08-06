@@ -6,13 +6,11 @@ typedef struct  File File;
 #endif
 #ifdef PLATFORM_LINUX_FUNCTIONS
 
-/// --- Linux entry point --- //
-
 /// --- Includes --- //
 
-/// --- Platform API --- //
-
 /// --- Memory API --- //
+
+/// --- Print API --- //
 
 /// --- File API --- //
 

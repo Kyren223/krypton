@@ -22,19 +22,14 @@ int main(int argc, char **argv) {
 fn i32 KryptonMain(i32 argc, String *argv) {
   Printf("Welcome to %s - made by %s%d\n", "Krypton", "Kyren", 223);
 
-  File file = PlatformOpenFile(S("file.txt"));
-  if (!PlatformIsValidFile(file)) {
-    Print(S("Invalid file\n"));
+  char buf[1024];
+  String contents = ReadFile(buf, S("file.txt"), sizeof(buf));
+  if (contents.value == null) {
+    Print(S("Unable to read file\n"));
     return 1;
   }
 
-  char buf[1024];
-  String contents = PlatformReadFile(file, buf, 1024);
   Printf("'%s'\n", contents.value);
-
-
-  // TODO(kyren): check if closed properly
-  PlatformCloseFile(file);
 
   return 0;
 }

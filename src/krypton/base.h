@@ -285,7 +285,8 @@ typedef int32_t  rune; // Unicode codepoint
 
 /// --- Strings --- ///
 
-#define S(cstr) ((String){.value = ("" cstr), .length = sizeof("" cstr) - 1})
+#define S(cstr) ((String){ .value = ("" cstr), .length = sizeof("" cstr) - 1 })
+#define ToS(cstr) ((String){ .value = (cstr), .length = strlen((cstr)) })
 
 struct String 
 {
