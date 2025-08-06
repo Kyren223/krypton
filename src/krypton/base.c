@@ -30,32 +30,47 @@ fn char *PrintfCallback(const char *buf, void *user, int len) {
   return (char*)buf;
 }
 
-fn String StrFrom(String s, u64 from) {
+fn String StrFrom(String s, i64 from) {
   if (from < 0) {
-    from = s.length - from;
+    from = s.length + from;
   }
+
   if (BUILD_SAFE) {
-    // TODO(kyren): check that s.value is 0?
-    assert(0 <= from && from < s.length); // Bounds check
+    assert(0 <= from && from <= s.length); // Bounds check
   }
+
+  // NOTE(kyren): when from == s.length, value will be out of bounds
+  // So we return an empty string instead
+  if (from == s.length) {
+    return S("");
+  }
+
   return (String){
     .value = s.value + from,
-    .length = s.length,
+    .length = s.length - from,
   };
 }
 
-fn String StrFromTo(String s, u64 from, u64 to) {
+fn String StrFromTo(String s, i64 from, i64 to) {
   if (from < 0) {
-    from = s.length - from;
+    from = s.length + from;
   }
   if (to < 0) {
-    to = s.length - to;
+    to = s.length + to;
   }
+
   if (BUILD_SAFE) {
-    // TODO(kyren): check that s.value is 0?
-    assert(0 <= from && from < s.length); // Bounds check
-    assert(0 <= to && to < s.length);     // Bounds check
+    assert(0 <= from && from <= s.length); // Bounds check
+    assert(from <= to);
+    assert(0 <= to && to <= s.length);     // Bounds check
   }
+
+  // NOTE(kyren): when from == to, value will be out of bounds
+  // So we return an empty string instead
+  if (from == to) {
+    return S("");
+  }
+
   return (String){
     .value = s.value + from,
     .length = to - from,

@@ -39,8 +39,8 @@ typedef struct  String String;
 /// --- Strings --- //
 fn i32    Printf         (const char *fmt, ...);
 fn char   *PrintfCallback(const char *buf, void *user, int len);
-fn String StrFrom        (String s, u64 from);
-fn String StrFromTo      (String s, u64 from, u64 to);
+fn String StrFrom        (String s, i64 from);
+fn String StrFromTo      (String s, i64 from, i64 to);
 
 /// --- Files --- //
 
