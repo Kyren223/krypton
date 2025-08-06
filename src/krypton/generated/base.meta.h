@@ -22,6 +22,8 @@
 
 /// ---- Types --- //
 
+/// ---- Branch Predictor Hints --- //
+
 /// ---- Asserts --- //
 
 /// ---- Metagen --- //
@@ -31,25 +33,47 @@ typedef struct  String String;
 
 /// ---- Flags --- //
 
+/// ---- Conversions --- //
+
+/// ---- Math --- //
+
 /// ---- Memory --- //
 
 /// ---- Arena Types --- //
 typedef enum  ArenaFlags ArenaFlags;
 typedef struct  ArenaParams ArenaParams;
 typedef struct  Arena Arena;
-typedef struct  Tem Tem;
+typedef struct  Temp Temp;
 
 /// ---- Arena Functions --- //
 
 #endif
+
 #ifdef BASE_FUNCTIONS
 
 /// --- Strings --- //
+fn i32    CStrlen        (char *cstr);
 fn i32    Printf         (const char *fmt, ...);
 fn char   *PrintfCallback(const char *buf, void *user, int len);
+fn void   Print          (String str);
 fn String StrFrom        (String s, i64 from);
 fn String StrFromTo      (String s, i64 from, i64 to);
 
 /// --- Files --- //
+
+/// --- Memory --- //
+fn b32 MemIsPow2      (u64 x);
+fn u64 MemAlignForward(uptr ptr, u64 alignment);
+
+/// --- Arena --- //
+fn Arena *ArenaAlloc_(ArenaParams *params);
+fn void  ArenaRelease(Arena *arena);
+fn void  *ArenaPush  (Arena *arena, u64 size, u64 align, char *allocationSiteFile, int allocationSiteLine);
+fn u64   ArenaPos    (Arena *arena);
+fn void  ArenaPopTo  (Arena *arena, u64 pos);
+fn void  AreanClear  (Arena *arena);
+fn void  ArenaPop    (Arena *arena, u64 amount);
+fn Temp  TempBegin   (Arena *arena);
+fn void  TempEnd     (Temp temp);
 
 #endif

@@ -3,6 +3,7 @@
 #ifdef KRYPTON_MAIN_DEFS
 
 #endif
+
 #ifdef KRYPTON_MAIN_FUNCTIONS
 
 /// --- Includes --- //

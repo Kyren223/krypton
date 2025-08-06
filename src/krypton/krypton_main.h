@@ -10,4 +10,6 @@
 #define KRYPTON_MAIN_FUNCTIONS
 #include "generated/krypton_main.meta.h"
 
+int EntryPoint(int argc, char **argv);
+
 #endif

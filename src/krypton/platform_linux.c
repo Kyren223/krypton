@@ -13,11 +13,84 @@
 #include <string.h>
 #include <errno.h>
 
-/// --- Memory API --- ///
+// NOTE(kyren): other linux headers we might need later
+#include <dirent.h>
+#include <dlfcn.h>
+#include <features.h>
+#include <linux/limits.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <sys/random.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/sysinfo.h>
+#include <sys/types.h>
+#include <time.h>
 
-// void *PageAlloc() {
-//   mmap()
-// }
+/// --- OS Entry --- ///
+
+global OsSystemInfo system_info = {0};
+
+int main(int argc, char **argv) {
+  // NOTE(kyren): set up OS layer
+
+  // NOTE(kyren): get statically-allocated system/process info
+  OsSystemInfo *info = &system_info;
+  info->logicalProcessorCount = (u32)get_nprocs();
+  info->pageSize = (u64)getpagesize();
+  info->largePageSize = MB(2);
+  info->allocationGranularity  = info->pageSize;
+
+  // NOTE(kyren): call into the "real" entry point
+  EntryPoint(argc, argv);
+}
+
+/// --- OS Info --- ///
+
+OsSystemInfo *OsSysInfo(void) {
+  return &system_info;
+}
+
+/// --- Allocation API --- ///
+
+void *OsReserve(u64 size) {
+  void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  if (result == MAP_FAILED) {
+    return null;
+  }
+  return result;
+}
+
+b32 OsCommit(void *ptr, u64 size) {
+  b32 result = (mprotect(ptr, size, PROT_READ|PROT_WRITE) != -1);
+  return result;
+}
+
+void OsDecommit(void *ptr, u64 size) {
+  madvise(ptr, size, MADV_DONTNEED);
+  mprotect(ptr, size, PROT_NONE);
+}
+
+void OsRelease(void *ptr, u64 size) {
+  munmap(ptr, size);
+}
+
+void *OsReserveLarge(u64 size) {
+  void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB, -1, 0);
+  if (result == MAP_FAILED) {
+    return null;
+  }
+  return result;
+}
+
+b32 OsCommitLarge(void *ptr, u64 size) {
+  b32 result = (mprotect(ptr, size, PROT_READ|PROT_WRITE) != -1);
+  return result;
+}
+
+/// --- Memory API --- ///
 
 void *MemCopy(void *dest, void *src, u64 size) {
   return memcpy(dest, src, size);
@@ -33,27 +106,48 @@ i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
 
 /// --- Print API --- ///
 
-i32 Print(String str) {
-  return write(STDOUT_FILENO, str.value, str.length);
+i32 OsPrint(String str) {
+  i32 result = write(STDOUT_FILENO, str.value, str.length);
+
+  if (result == -1) {
+    return false;
+  }
+
+  return true;
 }
 
 /// --- File API --- ///
 
-b8 PlatformIsValidFile(File file) {
+b32 OsIsValidFile(File file) {
   return file.fd >= 0;
 }
 
-File PlatformOpenFile(String path) {
+File OsOpenFile(String path) {
   int fd = open(path.value, O_RDONLY);
   return (File){ .fd = fd };
 }
 
-i32 PlatformCloseFile(File file) {
+b32 OsCloseFile(File file) {
   i32 result = close(file.fd);
-  return result;
+
+  if (result == -1) {
+    return false;
+  }
+
+  return true;
 }
 
-String PlatformReadFile(File file, void *location, i32 size) {
+i64 OsFileSize(File file) {
+  struct stat st;
+
+  if (fstat(file.fd, &st) != 0) {
+    return OS_FILE_SIZE_ERROR;
+  }
+
+  return st.st_size;
+}
+
+String OsReadFile(File file, void *location, i32 size) {
   ssize_t bytesRead = read(file.fd, location, size);
 
   if (bytesRead == -1) {
@@ -67,3 +161,8 @@ String PlatformReadFile(File file, void *location, i32 size) {
   return (String){ .value = location, .length = (u64)bytesRead };
 }
 
+/// --- Abort --- ///
+
+void OsAbort(i32 exitCode) {
+  exit(exitCode);
+}

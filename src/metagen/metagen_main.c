@@ -175,7 +175,7 @@ void GenFunctionPrototypes(char *srcPath, char *destPath, char *define, int appe
 		}
 	}
 
-	fprintf(file, "\n\n#endif");
+	fprintf(file, "\n\n#endif\n");
 
 	free(src);
 	fclose(file);
@@ -233,7 +233,7 @@ void GenDefsPrototypes(char *srcPath, char *destPath, char *define)
 		}
 	}
 
-	fprintf(file, "\n#endif");
+	fprintf(file, "\n#endif\n");
 
 	free(src);
 	fclose(file);
