@@ -17,7 +17,7 @@ typedef struct  File File;
 
 /// --- Memory API --- //
 
-/// --- Print API --- //
+/// --- IO API --- //
 
 /// --- File API --- //
 

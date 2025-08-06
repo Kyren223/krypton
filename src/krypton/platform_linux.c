@@ -104,7 +104,7 @@ i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
   return memcmp(ptr1, ptr2, count);
 }
 
-/// --- Print API --- ///
+/// --- IO API --- ///
 
 i32 OsPrint(String str) {
   i32 result = write(STDOUT_FILENO, str.value, str.length);
@@ -114,6 +114,44 @@ i32 OsPrint(String str) {
   }
 
   return true;
+}
+
+#define READLINE_BUF_SIZE 512
+
+String OsReadLine(Arena *arena) {
+  String s = {0};
+
+  char buf[READLINE_BUF_SIZE];
+
+  for (;;) {
+    i32 bytesRead = read(STDIN_FILENO, buf, READLINE_BUF_SIZE);
+
+    if (bytesRead == -1) {
+      return (String){0};
+    }
+
+    for (i32 i = 0; i < bytesRead; i++) {
+      if (buf[i] == '\n') {
+        s.length += i;
+        char *dest = PushArrayNoZero(arena, char, i);
+        MemCopy(dest, buf, i);
+        if (!s.value) {
+          s.value = dest;
+        }
+        return s;
+      }
+    }
+
+    s.length += bytesRead;
+    char *dest = PushArrayNoZero(arena, char, bytesRead);
+    MemCopy(dest, buf, bytesRead);
+    if (!s.value) {
+      s.value = dest;
+    }
+
+  }
+
+  return s;
 }
 
 /// --- File API --- ///

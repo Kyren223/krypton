@@ -40,10 +40,10 @@ void *MemCopy(void *dest, void *src, u64 size);
 void *MemSet(void *ptr, u8 value, u64 size);
 i32 MemCmp(void *ptr1, void *ptr2, u64 count);
 
-/// --- Print API --- ///
+/// --- IO API --- ///
 
-// Returns the number of bytes written or PRINT_ERROR if failed
 b32 OsPrint(String str);
+String OsReadLine(Arena *arena);
 
 /// --- File API --- ///
 

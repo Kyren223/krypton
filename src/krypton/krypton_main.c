@@ -46,10 +46,12 @@ fn i32 KryptonMain(i32 argc, String *argv) {
   // NOTE(kyren): -1 to remove \n at the end of the file
   Printf("'%S'\n", StrFromTo(contents, 0, -1));
 
-  Printf("Arena Commit Size: %d\n", arena->commitSize);
+  Printf("Arena Commited Size: %d\n", arena->commit);
+
+  String line = OsReadLine(arena);
+  Printf("echo '%S'\n", line);
 
   ArenaRelease(arena);
-
 
   return 0;
 }
