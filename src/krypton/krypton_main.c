@@ -14,7 +14,7 @@
 
 /// --- Entry Point --- ///
 
-int EntryPoint(int argc, char **argv) {
+int EntryPoint(int argc, char** argv) {
   Assert(argc <= 255 && "Max arguments allowed");
 
   String args[255];
@@ -25,7 +25,7 @@ int EntryPoint(int argc, char **argv) {
   return KryptonMain(argc, args);
 }
 
-fn i32 KryptonMain(i32 argc, String *argv) {
+fn i32 KryptonMain(i32 argc, String* argv) {
   Printf("%s\n", BUILD_TITLE_STRING_LITERAL);
 
   Print(S("\nArgs:\n"));
@@ -35,7 +35,7 @@ fn i32 KryptonMain(i32 argc, String *argv) {
 
   Print(S("\nFile contents:\n"));
 
-  Arena *arena = ArenaAlloc(.commitSize = 4096);
+  Arena* arena = ArenaAlloc(.commitSize = 4096);
 
   String contents = ReadFile(arena, S("file.txt"));
   if (contents.value == null) {

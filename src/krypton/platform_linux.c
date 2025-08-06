@@ -12,36 +12,36 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-
-// NOTE(kyren): other linux headers we might need later
-#include <dirent.h>
-#include <dlfcn.h>
-#include <features.h>
-#include <linux/limits.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <sys/random.h>
-#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
-#include <sys/types.h>
-#include <time.h>
+#include <stdlib.h>
+
+// NOTE(kyren): other linux headers we might need later
+// #include <dirent.h>
+// #include <dlfcn.h>
+// #include <features.h>
+// #include <linux/limits.h>
+// #include <pthread.h>
+// #include <semaphore.h>
+// #include <signal.h>
+// #include <sys/random.h>
+// #include <sys/sendfile.h>
+// #include <sys/types.h>
+// #include <time.h>
 
 /// --- OS Entry --- ///
 
 global OsSystemInfo system_info = {0};
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // NOTE(kyren): set up OS layer
 
   // NOTE(kyren): get statically-allocated system/process info
-  OsSystemInfo *info = &system_info;
+  OsSystemInfo* info = &system_info;
   info->logicalProcessorCount = (u32)get_nprocs();
   info->pageSize = (u64)getpagesize();
   info->largePageSize = MB(2);
-  info->allocationGranularity  = info->pageSize;
+  info->allocationGranularity = info->pageSize;
 
   // NOTE(kyren): call into the "real" entry point
   EntryPoint(argc, argv);
@@ -49,58 +49,62 @@ int main(int argc, char **argv) {
 
 /// --- OS Info --- ///
 
-OsSystemInfo *OsSysInfo(void) {
+OsSystemInfo* OsSysInfo(void) {
   return &system_info;
 }
 
 /// --- Allocation API --- ///
 
-void *OsReserve(u64 size) {
-  void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+void* OsReserve(u64 size) {
+  void* result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+
   if (result == MAP_FAILED) {
     return null;
   }
+
   return result;
 }
 
-b32 OsCommit(void *ptr, u64 size) {
+b32 OsCommit(void* ptr, u64 size) {
   b32 result = (mprotect(ptr, size, PROT_READ|PROT_WRITE) != -1);
   return result;
 }
 
-void OsDecommit(void *ptr, u64 size) {
+void OsDecommit(void* ptr, u64 size) {
   madvise(ptr, size, MADV_DONTNEED);
   mprotect(ptr, size, PROT_NONE);
 }
 
-void OsRelease(void *ptr, u64 size) {
+void OsRelease(void* ptr, u64 size) {
   munmap(ptr, size);
 }
 
-void *OsReserveLarge(u64 size) {
-  void *result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB, -1, 0);
+void* OsReserveLarge(u64 size) {
+  void* result = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB, -1, 0);
+
   if (result == MAP_FAILED) {
     return null;
   }
+
   return result;
 }
 
-b32 OsCommitLarge(void *ptr, u64 size) {
+b32 OsCommitLarge(void* ptr, u64 size) {
   b32 result = (mprotect(ptr, size, PROT_READ|PROT_WRITE) != -1);
   return result;
 }
 
 /// --- Memory API --- ///
 
-void *MemCopy(void *dest, void *src, u64 size) {
+void* MemCopy(void* dest, void* src, u64 size) {
   return memcpy(dest, src, size);
 }
 
-void *MemSet(void *ptr, u8 value, u64 size) {
+void* MemSet(void* ptr, u8 value, u64 size) {
   return memset(ptr, value, size);
 }
 
-i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
+i32 MemCmp(void* ptr1, void* ptr2, u64 count) {
   return memcmp(ptr1, ptr2, count);
 }
 
@@ -118,7 +122,7 @@ i32 OsPrint(String str) {
 
 #define READLINE_BUF_SIZE 512
 
-String OsReadLine(Arena *arena) {
+String OsReadLine(Arena* arena) {
   String s = {0};
 
   char buf[READLINE_BUF_SIZE];
@@ -133,7 +137,7 @@ String OsReadLine(Arena *arena) {
     for (i32 i = 0; i < bytesRead; i++) {
       if (buf[i] == '\n') {
         s.length += i;
-        char *dest = PushArrayNoZero(arena, char, i);
+        char* dest = PushArrayNoZero(arena, char, i);
         MemCopy(dest, buf, i);
         if (!s.value) {
           s.value = dest;
@@ -143,7 +147,7 @@ String OsReadLine(Arena *arena) {
     }
 
     s.length += bytesRead;
-    char *dest = PushArrayNoZero(arena, char, bytesRead);
+    char* dest = PushArrayNoZero(arena, char, bytesRead);
     MemCopy(dest, buf, bytesRead);
     if (!s.value) {
       s.value = dest;
@@ -185,8 +189,8 @@ i64 OsFileSize(File file) {
   return st.st_size;
 }
 
-String OsReadFile(File file, void *location, i32 size) {
-  ssize_t bytesRead = read(file.fd, location, size);
+String OsReadFile(File file, void* buf, i32 size) {
+  ssize_t bytesRead = read(file.fd, buf, size);
 
   if (bytesRead == -1) {
     return (String){0};
@@ -196,7 +200,7 @@ String OsReadFile(File file, void *location, i32 size) {
     return (String){ .value = "", .length = 0 };
   }
 
-  return (String){ .value = location, .length = (u64)bytesRead };
+  return (String){ .value = buf, .length = (u64)bytesRead };
 }
 
 /// --- Abort --- ///

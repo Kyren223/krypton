@@ -6,7 +6,7 @@
 
 /// --- Strings --- ///
 
-fn i32 CStrlen(char *cstr) {
+fn i32 CStrlen(char* cstr) {
   Assert(cstr != null);
 
   i32 len = 0;
@@ -21,7 +21,7 @@ fn i32 CStrlen(char *cstr) {
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 
-fn i32 Printf(const char *fmt, ...) {
+fn i32 Printf(const char* fmt, ...) {
   char buf[STB_SPRINTF_MIN];
 
   int result;
@@ -33,7 +33,7 @@ fn i32 Printf(const char *fmt, ...) {
   return result;
 }
 
-fn char *PrintfCallback(const char *buf, void *user, int len) {
+fn char* PrintfCallback(const char* buf, void* user, int len) {
   b32 result = OsPrint((String){ .value = (char*)buf, .length = len });
 
   if (!result) {
@@ -92,7 +92,7 @@ fn String StrFromTo(String s, i64 from, i64 to) {
 
 /// --- Files --- ///
 
-String ReadFile(Arena *arena, String path) {
+String ReadFile(Arena* arena, String path) {
   // Buf is only used when length > 0 for the returned string
 
   File file = OsOpenFile(path);
@@ -106,7 +106,7 @@ String ReadFile(Arena *arena, String path) {
     return (String){0};
   }
 
-  char *buf = PushArrayNoZero(arena, char, size);
+  char* buf = PushArrayNoZero(arena, char, size);
   String s = OsReadFile(file, buf, size);
 
   b32 result = OsCloseFile(file);
@@ -143,6 +143,7 @@ fn u64 MemAlignForward(uptr ptr, u64 alignment) {
 		// push the address to the next value which is aligned
 		p += a - modulo;
 	}
+
 	return p;
 }
 
@@ -152,7 +153,7 @@ fn u64 MemAlignForward(uptr ptr, u64 alignment) {
 // Copyright (c) Epic Games Tools
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
-fn Arena *ArenaAlloc_(ArenaParams *params) {
+fn Arena* ArenaAlloc_(ArenaParams* params) {
   // NOTE(kyren): round up reserve/commit sizes
   u64 reserveSize = params->reserveSize;
   u64 commitSize = params->commitSize;
@@ -166,7 +167,7 @@ fn Arena *ArenaAlloc_(ArenaParams *params) {
   }
 
   // NOTE(kyren): reserve/commit initial block
-  void *base = params->optionalBackingBuffer;
+  void* base = params->optionalBackingBuffer;
   if (base == 0) {
     if (params->flags & ArenaFlags_LargePages) {
       base = OsReserveLarge(reserveSize);
@@ -185,7 +186,7 @@ fn Arena *ArenaAlloc_(ArenaParams *params) {
   }
 
   // NOTE(kyren): extract arena header and fill it
-  Arena *arena = (Arena*)base;
+  Arena* arena = (Arena*)base;
   arena->current = arena;
   arena->flags = params->flags;
   arena->commitSize = params->commitSize;
@@ -205,24 +206,24 @@ fn Arena *ArenaAlloc_(ArenaParams *params) {
   return arena;
 }
 
-fn void ArenaRelease(Arena *arena) {
-  for (Arena *n = arena->current, *prev = 0; n != 0; n = prev) {
+fn void ArenaRelease(Arena* arena) {
+  for (Arena* n = arena->current, *prev = 0; n != 0; n = prev) {
     prev = n->prev;
     OsRelease(n, n->reserve);
   }
 }
 
-fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, int allocationSiteLine) {
-  Arena *current = arena->current;
+fn void* ArenaPush(Arena* arena, u64 size, u64 align, char* allocationSiteFile, int allocationSiteLine) {
+  Arena* current = arena->current;
   u64 posPre = MemAlignPow2(current->pos, align);
   u64 posPost = posPre + size;
 
   // NOTE(kyren): chain, if needed
   if (current->reserve < posPost && !(arena->flags & ArenaFlags_NoChain)) {
-    Arena *newBlock = 0;
+    Arena* newBlock = 0;
 
 #if ARENA_FREE_LIST
-      Arena *prevBlock;
+      Arena* prevBlock;
       for (newBlock = arena->freeLast, prevBlock = 0; newBlock != 0; prevBlock = newBlock, newBlock = newBlock->prev) {
         if (newBlock->reserve >= MemAlignPow2(size, align)) {
           if (prevBlock) {
@@ -272,7 +273,7 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
     commitPostAligned -= commitPostAligned % current->commitSize;
     u64 commitPostClamped = ClampTop(commitPostAligned, current->reserve); // TODO: maybe here?
     u64 commitSize = commitPostClamped - current->commit;
-    u8 *commitPtr = (u8 *)current + current->commit;
+    u8* commitPtr = (u8*)current + current->commit;
 
     if (current->flags & ArenaFlags_LargePages) {
       OsCommitLarge(commitPtr, commitSize);
@@ -284,7 +285,7 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
   }
 
   // NOTE(kyren): push onto current block
-  void *result = 0;
+  void* result = 0;
   if (current->commit >= posPost) {
     result = (u8*)current + posPre;
     current->pos = posPost;
@@ -301,18 +302,18 @@ fn void *ArenaPush(Arena *arena, u64 size, u64 align, char *allocationSiteFile, 
   return result;
 }
 
-fn u64 ArenaPos(Arena *arena) {
-  Arena *current = arena->current;
+fn u64 ArenaPos(Arena* arena) {
+  Arena* current = arena->current;
   u64 pos = current->basePos + current->pos;
   return pos;
 }
 
-fn void ArenaPopTo(Arena *arena, u64 pos) {
+fn void ArenaPopTo(Arena* arena, u64 pos) {
   u64 bigPos = ClampBottom(ARENA_HEADER_SIZE, pos);
-  Arena *current = arena->current;
+  Arena* current = arena->current;
 
 #if ARENA_FREE_LIST
-  for (Arena *prev = 0; current->basePos >= bigPos; current = prev) {
+  for (Arena* prev = 0; current->basePos >= bigPos; current = prev) {
     prev = current->prev;
     current->pos = ARENA_HEADER_SIZE;
     arena->freeSize += current->reserveSize;
@@ -324,7 +325,7 @@ fn void ArenaPopTo(Arena *arena, u64 pos) {
     AsanPoisonMemoryRegion((u8*)current + ARENA_HEADER_SIZE, current->reserveSize - ARENA_HEADER_SIZE);
   }
 #else
-  for(Arena *prev = 0; current->basePos >= bigPos; current = prev) {
+  for(Arena* prev = 0; current->basePos >= bigPos; current = prev) {
     prev = current->prev;
     OsRelease(current, current->reserve);
   }
@@ -337,11 +338,11 @@ fn void ArenaPopTo(Arena *arena, u64 pos) {
   current->pos = newPos;
 }
 
-fn void AreanClear(Arena *arena) {
+fn void AreanClear(Arena* arena) {
   ArenaPopTo(arena, 0);
 }
 
-fn void ArenaPop(Arena *arena, u64 amount) {
+fn void ArenaPop(Arena* arena, u64 amount) {
   u64 posOld = ArenaPos(arena);
   u64 posnew = posOld;
 
@@ -352,7 +353,7 @@ fn void ArenaPop(Arena *arena, u64 amount) {
   ArenaPopTo(arena, posnew);
 }
 
-fn Temp TempBegin(Arena *arena) {
+fn Temp TempBegin(Arena* arena) {
   u64 pos = ArenaPos(arena);
   Temp temp = { arena, pos };
   return temp;

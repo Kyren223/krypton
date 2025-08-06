@@ -600,6 +600,7 @@ STBSP__PUBLICDEF int STB_SPRINTF_DECORATE(vsprintfcb)(STBSP_SPRINTFCB *callback,
          // copy the string in
          goto scopy;
 
+      // NOTE(kyren): custom %S specifier for the fat String type
       case 'S':
          // get the string
         {

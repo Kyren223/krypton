@@ -317,8 +317,8 @@ typedef intptr_t  iptr;
 #endif
 
 #if BUILD_SAFE && ASAN_ENABLED
-C_LINKAGE void __asan_poison_memory_region(void const volatile *addr, size_t size);
-C_LINKAGE void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
+C_LINKAGE void __asan_poison_memory_region(void const volatile* addr, size_t size);
+C_LINKAGE void __asan_unpoison_memory_region(void const volatile* addr, size_t size);
 # define AsanPoisonMemoryRegion(addr, size)   __asan_poison_memory_region((addr), (size))
 # define AsanUnpoisonMemoryRegion(addr, size) __asan_unpoison_memory_region((addr), (size))
 #else
@@ -342,7 +342,7 @@ C_LINKAGE void __asan_unpoison_memory_region(void const volatile *addr, size_t s
 
 struct String 
 {
-  char *value;
+  char* value;
   u64 length;
 };
 
@@ -405,15 +405,15 @@ struct ArenaParams
   ArenaFlags flags;
   u64 reserveSize;
   u64 commitSize;
-  void *optionalBackingBuffer;
-  char *allocationSiteFile;
+  void* optionalBackingBuffer;
+  char* allocationSiteFile;
   int allocationSiteLine;
 };
 
 struct Arena 
 {
-  Arena *prev;    // previous arena in chain
-  Arena *current; // current arena in chain
+  Arena* prev;    // previous arena in chain
+  Arena* current; // current arena in chain
   ArenaFlags flags;
   u64 commitSize;
   u64 reserveSize;
@@ -421,11 +421,11 @@ struct Arena
   u64 pos;
   u64 commit;
   u64 reserve;
-  char *allocationSiteFile;
+  char* allocationSiteFile;
   int allocationSiteLine;
 #if ARENA_FREE_LIST
   u64 freeSize;
-  Arena *freeLast;
+  Arena* freeLast;
 #endif
 };
 
@@ -433,7 +433,7 @@ StaticAssert(sizeof(Arena) <= ARENA_HEADER_SIZE, arena_header_size_check);
 
 struct Temp 
 {
-  Arena *arena;
+  Arena* arena;
   u64 pos;
 };
 
