@@ -132,16 +132,8 @@
 # define BUILD_DEBUG 1
 #endif
 
-#if !defined(BUILD_SUPPLEMENTARY_UNIT)
-# define BUILD_SUPPLEMENTARY_UNIT 0
-#endif
-
-#if !defined(BUILD_ENTRY_DEFINING_UNIT)
-# define BUILD_ENTRY_DEFINING_UNIT 1
-#endif
-
-#if !defined(BUILD_CONSOLE_INTERFACE)
-# define BUILD_CONSOLE_INTERFACE 0
+#if !defined(BUILD_SAFE)
+# define BUILD_SAFE 1
 #endif
 
 #if !defined(BUILD_VERSION_MAJOR)
@@ -149,16 +141,23 @@
 #endif
 
 #if !defined(BUILD_VERSION_MINOR)
-# define BUILD_VERSION_MINOR 9
+# define BUILD_VERSION_MINOR 0
 #endif
 
 #if !defined(BUILD_VERSION_PATCH)
-# define BUILD_VERSION_PATCH 21
+# define BUILD_VERSION_PATCH 1
 #endif
 
+#define StringifyHelper(x) #x
+#define Stringify(x) StringifyHelper(x)
+
 #define BUILD_VERSION_STRING_LITERAL Stringify(BUILD_VERSION_MAJOR) "." Stringify(BUILD_VERSION_MINOR) "." Stringify(BUILD_VERSION_PATCH)
-#if BUILD_DEBUG
+#if BUILD_DEBUG && BUILD_SAFE
+# define BUILD_MODE_STRING_LITERAL_APPEND " [Debug Safe]"
+#elif BUILD_DEBUG
 # define BUILD_MODE_STRING_LITERAL_APPEND " [Debug]"
+#elif BUILD_SAFE
+# define BUILD_MODE_STRING_LITERAL_APPEND " [Safe]"
 #else
 # define BUILD_MODE_STRING_LITERAL_APPEND ""
 #endif
@@ -169,7 +168,7 @@
 #endif
 
 #if !defined(BUILD_TITLE)
-# define BUILD_TITLE "Untitled"
+# define BUILD_TITLE "Krypton"
 #endif
 
 #if !defined(BUILD_RELEASE_PHASE_STRING_LITERAL)
@@ -177,7 +176,7 @@
 #endif
 
 #if !defined(BUILD_ISSUES_LINK_STRING_LITERAL)
-# define BUILD_ISSUES_LINK_STRING_LITERAL "https://github.com/EpicGamesExt/raddebugger/issues"
+# define BUILD_ISSUES_LINK_STRING_LITERAL "https://github.com/kyren223/krypton/issues"
 #endif
 
 #define BUILD_TITLE_STRING_LITERAL BUILD_TITLE " (" BUILD_VERSION_STRING_LITERAL " " BUILD_RELEASE_PHASE_STRING_LITERAL ") - " __DATE__ "" BUILD_GIT_HASH_STRING_LITERAL_APPEND BUILD_MODE_STRING_LITERAL_APPEND
@@ -243,7 +242,7 @@
 # elif defined(COMPILER_MSVC)
 # define UNREACHABLE() __assume(0)
 #else
-# error You tried to build with an unsupported architecture. Currently, only building in x64 mode is supported.
+# error You tried to build with an unsupported compiler. Currently, only clang, gcc and msvc are supported.
 #endif
 
 /// --- Types --- ///

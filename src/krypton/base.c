@@ -34,7 +34,7 @@ fn String StrFrom(String s, u64 from) {
   if (from < 0) {
     from = s.length - from;
   }
-  if (BUILD_DEBUG) {
+  if (BUILD_SAFE) {
     // TODO(kyren): check that s.value is 0?
     assert(0 <= from && from < s.length); // Bounds check
   }
@@ -51,7 +51,7 @@ fn String StrFromTo(String s, u64 from, u64 to) {
   if (to < 0) {
     to = s.length - to;
   }
-  if (BUILD_DEBUG) {
+  if (BUILD_SAFE) {
     // TODO(kyren): check that s.value is 0?
     assert(0 <= from && from < s.length); // Bounds check
     assert(0 <= to && to < s.length);     // Bounds check

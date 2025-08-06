@@ -15,6 +15,10 @@
 
 /// --- Memory API --- ///
 
+// void *PageAlloc() {
+//   mmap()
+// }
+
 void *MemCopy(void *dest, void *src, u64 size) {
   return memcpy(dest, src, size);
 }

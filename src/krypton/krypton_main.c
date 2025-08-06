@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 }
 
 fn i32 KryptonMain(i32 argc, String *argv) {
-  Printf("Welcome to %s - made by %s%d\n", "Krypton", "Kyren", 223);
+  Printf("%s\n", BUILD_TITLE_STRING_LITERAL);
 
   char buf[1024];
   String contents = ReadFile(buf, S("file.txt"), sizeof(buf));
