@@ -31,6 +31,8 @@ typedef struct  String String;
 
 /// ---- Memory --- //
 
+/// ---- Asserts --- //
+
 #endif
 #ifdef BASE_FUNCTIONS
 
@@ -39,9 +41,6 @@ fn i32    Printf         (const char *fmt, ...);
 fn char   *PrintfCallback(const char *buf, void *user, int len);
 fn String StrFrom        (String s, u64 from);
 fn String StrFromTo      (String s, u64 from, u64 to);
-
-/// --- Asserts --- //
-fn void assert(b8 ok);
 
 /// --- Files --- //
 

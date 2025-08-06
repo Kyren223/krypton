@@ -62,15 +62,6 @@ fn String StrFromTo(String s, u64 from, u64 to) {
   };
 }
 
-/// --- Asserts --- ///
-
-fn void assert(b8 ok) {
-  // TODO(kyren): fix assert to be a macro so it reports the place it was used
-  if (!ok) {
-    UNREACHABLE();
-  }
-}
-
 /// --- Files --- ///
 
 String ReadFile(void *buf, String path, i32 size) {

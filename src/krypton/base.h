@@ -311,4 +311,9 @@ struct String
 
 #define MemZero(ptr, size) MemSet(ptr, 0, size)
 
+/// --- Asserts --- ///
+
+#define assert(expr) if (!(expr)) { UNREACHABLE(); }
+
+
 #endif
