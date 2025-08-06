@@ -55,16 +55,16 @@ i32 PlatformCloseFile(File file) {
 }
 
 String PlatformReadFile(File file, void *location, i32 size) {
-  ssize_t n = read(file.fd, location, size);
+  ssize_t bytesRead = read(file.fd, location, size);
 
-  if (n == -1) {
+  if (bytesRead == -1) {
     return (String){0};
   }
 
-  if (n == 0) {
+  if (bytesRead == 0) {
     return (String){ .value = "", .length = 0 };
   }
 
-  return (String){ .value = location, .length = (u64)n };
+  return (String){ .value = location, .length = (u64)bytesRead };
 }
 
