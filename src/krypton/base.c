@@ -36,7 +36,7 @@ fn String StrFrom(String s, i64 from) {
   }
 
   if (BUILD_SAFE) {
-    assert(0 <= from && from <= s.length); // Bounds check
+    Assert(0 <= from && from <= s.length); // Bounds check
   }
 
   // NOTE(kyren): when from == s.length, value will be out of bounds
@@ -60,9 +60,9 @@ fn String StrFromTo(String s, i64 from, i64 to) {
   }
 
   if (BUILD_SAFE) {
-    assert(0 <= from && from <= s.length); // Bounds check
-    assert(from <= to);
-    assert(0 <= to && to <= s.length);     // Bounds check
+    Assert(0 <= from && from <= s.length); // Bounds check
+    Assert(from <= to);
+    Assert(0 <= to && to <= s.length);     // Bounds check
   }
 
   // NOTE(kyren): when from == to, value will be out of bounds

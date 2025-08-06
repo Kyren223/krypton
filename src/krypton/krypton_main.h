@@ -7,7 +7,6 @@
 #include "base.h"
 
 #define KRYPTON_MAIN_DEFS
-#include "generated/krypton_main.meta.h"
 #define KRYPTON_MAIN_FUNCTIONS
 #include "generated/krypton_main.meta.h"
 

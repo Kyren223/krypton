@@ -273,12 +273,17 @@ typedef int32_t  rune; // Unicode codepoint
 #define false 0
 #define null  0
 
+/// --- Asserts --- ///
+
+#define Assert(expr) if (!(expr)) { UNREACHABLE(); }
+#define StaticAssert(expr, msg) typedef char static_assert_##msg[(cond) ? 1 : -1];
+
 /// --- Metagen --- ///
 
 #define fn static
+#define global static
 
 #define BASE_DEFS
-#include "generated/base.meta.h"
 #define BASE_FUNCTIONS
 #include "generated/base.meta.h"
 
@@ -310,9 +315,7 @@ struct String
 
 #define MemZero(ptr, size) MemSet(ptr, 0, size)
 
-/// --- Asserts --- ///
 
-#define assert(expr) if (!(expr)) { UNREACHABLE(); }
 
 
 #endif

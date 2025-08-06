@@ -29,10 +29,8 @@ fn i32 KryptonMain(i32 argc, String *argv) {
     return 1;
   }
 
+  // NOTE(kyren): -1 to remove \n at the end of the file
   Printf("'%S'\n", StrFromTo(contents, 0, -1));
-
-  // String partial = StrFromTo(contents, 0, 1);
-  // Printf("'%S'\n", partial);
 
   return 0;
 }

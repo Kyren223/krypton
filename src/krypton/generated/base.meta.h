@@ -22,6 +22,8 @@
 
 /// ---- Types --- //
 
+/// ---- Asserts --- //
+
 /// ---- Metagen --- //
 
 /// ---- Strings --- //
@@ -31,7 +33,13 @@ typedef struct  String String;
 
 /// ---- Memory --- //
 
-/// ---- Asserts --- //
+/// ---- Arena Types --- //
+typedef enum  ArenaFlags ArenaFlags;
+typedef struct  ArenaParams ArenaParams;
+typedef struct  Arena Arena;
+typedef struct  Tem Tem;
+
+/// ---- Arena Functions --- //
 
 #endif
 #ifdef BASE_FUNCTIONS

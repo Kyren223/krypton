@@ -34,8 +34,7 @@ i32 MemCmp(void *ptr1, void *ptr2, u64 count) {
 /// --- Print API --- ///
 
 i32 Print(String str) {
-  // TODO(kyren): replace 1 with an enum/constant for stdout
-  return write(1, str.value, str.length);
+  return write(STDOUT_FILENO, str.value, str.length);
 }
 
 /// --- File API --- ///
@@ -45,7 +44,7 @@ b8 PlatformIsValidFile(File file) {
 }
 
 File PlatformOpenFile(String path) {
-  int fd = openat(AT_FDCWD, path.value, O_RDONLY);
+  int fd = open(path.value, O_RDONLY);
   return (File){ .fd = fd };
 }
 
