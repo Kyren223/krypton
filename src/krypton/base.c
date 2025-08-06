@@ -90,6 +90,58 @@ fn String StrFromTo(String s, i64 from, i64 to) {
   };
 }
 
+fn i32 StrCmp(String s1, String s2) {
+  i32 len = Min(s1.length, s2.length);
+
+  for (u64 i = 0; i < len; i++) {
+    if (s1.value[i] < s2.value[i]) {
+      return -1;
+    } else if (s1.value[i] > s2.value[i]) {
+      return 1;
+    }
+  }
+
+  return s1.length - s2.length;
+}
+
+fn b32 StrEq(String s1, String s2) {
+  if (s1.length != s2.length) {
+    return false;
+  }
+
+  for (u64 i = 0; i < s1.length; i++) {
+    if (s1.value[i] != s2.value[i]) {
+      return false;
+    } 
+  }
+
+  return true;
+}
+
+fn b32 StrEqFIC(String s1, String s2) {
+  // NOTE(kyren): FIC stands for fast ignore case
+  // This may give incorrect results for any non a-z A-Z
+  // As all this does is set a specific bit
+
+  // A 01000001
+  // a 01100001
+  i32 diff = 'A' ^ 'a';
+
+  if (s1.length != s2.length) {
+    return false;
+  }
+
+  for (u64 i = 0; i < s1.length; i++) {
+    char c1 = s1.value[i] | diff;
+    char c2 = s2.value[i] | diff;
+    if (c1 != c2) {
+      return false;
+    } 
+  }
+
+  return true;
+}
+
 /// --- Files --- ///
 
 String ReadFile(Arena* arena, String path) {

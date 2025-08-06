@@ -29,30 +29,28 @@ fn i32 KryptonMain(i32 argc, String* argv) {
   Printf("%s\n", BUILD_TITLE_STRING_LITERAL);
 
   Print(S("\nArgs:\n"));
-  for (i32 i = 0; i < argc; i++) {
-    Printf("%s\n", argv[i]);
+  for (i32 i = 0; i < argc-1; i++) {
+    Printf("%s ", argv[i]);
   }
+  Printf("%s\n\n", argv[argc-1]);
 
-  Print(S("\nFile contents:\n"));
 
   Arena* arena = ArenaAlloc(.commitSize = 4096);
-
-  String contents = ReadFile(arena, S("file.txt"));
-  if (contents.value == null) {
-    Print(S("Unable to read file\n"));
-    return 1;
-  }
-
-  // NOTE(kyren): -1 to remove \n at the end of the file
-  Printf("'%S'\n", StrFromTo(contents, 0, -1));
-
-  Printf("Arena Commited Size: %d\n", arena->commit);
-
-  String line = OsReadLine(arena);
-  Printf("echo '%S'\n", line);
-
+  Repl(arena);
   ArenaRelease(arena);
 
   return 0;
 }
 
+fn void Repl(Arena* arena) {
+  for (;;) {
+    Printf("> ");
+    String line = OsReadLine(arena);
+
+    Printf("echo '%S'\n", line);
+
+    if (StrEqFIC(line, S("exit")) || StrEqFIC(line, S("quit"))) {
+      break;
+    }
+  }
+}

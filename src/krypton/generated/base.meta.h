@@ -58,6 +58,9 @@ fn char*  PrintfCallback(const char* buf, void* user, int len);
 fn void   Print         (String str);
 fn String StrFrom       (String s, i64 from);
 fn String StrFromTo     (String s, i64 from, i64 to);
+fn i32    StrCmp        (String s1, String s2);
+fn b32    StrEq         (String s1, String s2);
+fn b32    StrEqFIC      (String s1, String s2);
 
 /// --- Files --- //
 

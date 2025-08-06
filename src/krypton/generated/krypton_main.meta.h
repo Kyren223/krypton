@@ -13,6 +13,7 @@
 /// --- C/C++ Files --- //
 
 /// --- Entry Point --- //
-fn i32 KryptonMain(i32 argc, String* argv);
+fn i32  KryptonMain(i32 argc, String* argv);
+fn void Repl       (Arena* arena);
 
 #endif
