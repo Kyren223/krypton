@@ -36,7 +36,7 @@ b32 OsCommitLarge(void* ptr, u64 size);
 
 /// --- Memory API --- ///
 
-void* MemCopy(void* dest, void* src, u64 size);
+void* MemCopy(void* dest, const void* src, u64 size);
 void* MemSet(void* ptr, u8 value, u64 size);
 i32 MemCmp(void* ptr1, void* ptr2, u64 count);
 

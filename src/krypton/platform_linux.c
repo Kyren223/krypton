@@ -96,7 +96,7 @@ b32 OsCommitLarge(void* ptr, u64 size) {
 
 /// --- Memory API --- ///
 
-void* MemCopy(void* dest, void* src, u64 size) {
+void* MemCopy(void* dest, const void* src, u64 size) {
   return memcpy(dest, src, size);
 }
 
