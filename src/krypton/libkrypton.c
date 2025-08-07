@@ -4,11 +4,11 @@
 #include "libkrypton.h"
 #include "base.h"
 
-#define KrProduceToken(type, advance) (KrProduceToken_(tokenizer, type, advance, 0))
-#define KrProduceTokenOffset(type, advance, offset) (KrProduceToken_(tokenizer, type, advance, offset))
+#define KrProduceToken(type, advance) (KrProduceToken_(tokenizer, type, (advance), tokenizer->current))
+#define KrProduceTokenLoc(type, advance, location) (KrProduceToken_(tokenizer, type, advance, location))
 
 #define KrProduceToken1(type) KrProduceToken(type, 1)
-#define KrProduceToken2(one, c, two) KrProduceToken2_(tokenizer, one, c, two)
+#define KrProduceToken2(c, two, one) KrProduceToken2_(tokenizer, c, two, one)
 
 #define KrTokenizerMatch(match) (KrTokenizerMatch_(tokenizer, match))
 
@@ -22,11 +22,11 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
   char c = tokenizer->src.value[tokenizer->current];
   while (IsWhitespace(c)) {
     tokenizer->current++;
-    c = tokenizer->src.value[tokenizer->current];
-
     if (KrIsAtEnd(tokenizer)) {
       return KrProduceToken(KrTokenType_eof, 0);
     }
+    // NOTE(kyren): only access current AFTER the IsAtEnd check
+    c = tokenizer->src.value[tokenizer->current];
   }
 
   switch (c) {
@@ -50,15 +50,39 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
 
     // NOTE(kyren): one or two chars
     case '=': {
-      return KrProduceToken2(KrTokenType_equal, '=', KrTokenType_equalEqual);
+      return KrProduceToken2('=', KrTokenType_equalEqual, KrTokenType_equal);
     }break;
 
   }
 
-  // NOTE(kyren): Literals
-  // TODO(kyren): add keywords
+  // NOTE(kyren): Literals + Keywords
+  if (KrIsIdentifierStart(c)) {
+    return KrTokenizeIdentifier(tokenizer, c);
+  }
 
   return KrProduceToken(KrTokenType_unknown, 1);
+}
+
+fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c) {
+  u32 start = tokenizer->current;
+
+  // NOTE(kyren): skip first char
+  tokenizer->current++;
+  while (true) {
+    if (KrIsAtEnd(tokenizer)) {
+      break;
+    }
+
+    c = tokenizer->src.value[tokenizer->current];
+    if (!KrIsIdentifier(c)) {
+      break;
+    }
+    tokenizer->current++;
+  }
+
+  // TODO(kyren): add keywords
+
+  return KrProduceTokenLoc(KrTokenType_identifier, 0, start);
 }
 
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
@@ -130,18 +154,16 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
   Assert(!"Missing token type");
 }
 
-fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance, i32 offset) {
-  KrToken token = (KrToken){ .index = tokenizer->current+offset, .type = type };
+fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance, u32 location) {
+  KrToken token = (KrToken){ .index = location, .type = type };
   tokenizer->current += advance;
   return token;
 }
 
-fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, KrTokenType one, char c, KrTokenType two) {
+fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, char c, KrTokenType two, KrTokenType one) {
+  u32 start = tokenizer->current;
   KrTokenizerAdvance(tokenizer);
-  if (KrTokenizerMatch(c)) {
-    return KrProduceTokenOffset(two, 0, -2);
-  }
-  return KrProduceTokenOffset(one, 0, -1);
+  return KrProduceTokenLoc(KrTokenizerMatch(c) ? two : one, 0, start);
 }
 
 fn char KrTokenizerAdvance(KrTokenizer* tokenizer) {
@@ -151,6 +173,11 @@ fn char KrTokenizerAdvance(KrTokenizer* tokenizer) {
 }
 
 fn b32 KrTokenizerMatch_(KrTokenizer* tokenizer, char match) {
+  if (KrIsAtEnd(tokenizer)) {
+    return false;
+  }
+
+  // NOTE(kyren): only access current AFTER the IsAtEnd check
   char c = tokenizer->src.value[tokenizer->current];
 
   if (c != match) {
@@ -184,6 +211,15 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     // NOTE(kyren): literals
     // TODO(kyren): add lengths
     case KrTokenType_identifier: {
+      length = 0;
+      u32 index = token.index;
+      while (index < tokenizer->src.length) {
+        char c = tokenizer->src.value[index++];
+        if (!KrIsIdentifier(c)) {
+          break;
+        }
+        length++;
+      }
     }break;
     case KrTokenType_number: {
     }break;
@@ -210,7 +246,9 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     }break;
 
     case KrTokenType_eof: {
-      return (String){0};
+      return S("EOF");
+      // TODO: return null string?
+      // return (String){0};
     }break;
 
   }
@@ -238,7 +276,7 @@ void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end) {
     if (token.type == KrTokenType_eof) {
       break;
     }
-    Printf("%S%c", KrTokenString(tokenizer, token), sep);
+    Printf("'%S'%c", KrTokenString(tokenizer, token), sep);
   }
   KrToken token = KrTokenizerNext(tokenizer);
   Printf("%S%c", KrTokenString(tokenizer, token), end);
