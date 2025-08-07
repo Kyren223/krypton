@@ -45,6 +45,7 @@ enum KrTokenType
   // KrTokenType_,
 
   KrTokenType_eof,
+  KrTokenType_unknown,
 };
 
 struct KrToken 
@@ -57,5 +58,7 @@ StaticAssert(sizeof(KrToken) == 4, expected_4_byte_packed_struct);
 
 KrToken KrTokenizerNext(KrTokenizer* tokenizer);
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
+void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end);
+void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end);
 
 #endif

@@ -50,27 +50,19 @@ fn void Repl(Arena* arena) {
     Printf("> ");
     String line = OsReadLine(temp.arena);
 
-    KrTokenizer tokenizer = {0};
-    tokenizer.filename = S("REPL");
-    tokenizer.src = line;
-
     if (StrEqFIC(line, S("exit")) || StrEqFIC(line, S("quit"))) {
       break;
     }
 
-    while (true) {
-      KrToken token = KrTokenizerNext(&tokenizer);
+    KrTokenizer tokenizer1 = {0};
+    tokenizer1.filename = S("REPL");
+    tokenizer1.src = line;
+    KrTokenizerPrettyPrint(temp.arena, &tokenizer1, ' ', '\n');
 
-      if (token.type == KrTokenType_eof) {
-        break;
-      }
-
-      String stoken = KrTokenSprint(temp.arena, &tokenizer, token);
-      Printf("%S ", stoken);
-    }
-    KrToken token = KrTokenizerNext(&tokenizer);
-    String stoken = KrTokenSprint(temp.arena, &tokenizer, token);
-    Printf("%S\n", stoken);
+    KrTokenizer tokenizer2 = {0};
+    tokenizer2.filename = S("REPL");
+    tokenizer2.src = line;
+    KrTokenizerPrint(&tokenizer2, ' ', '\n');
 
     TempEnd(temp);
   }

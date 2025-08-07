@@ -7,6 +7,9 @@
 #define KrProduceToken(type, advance) (KrProduceToken_(tokenizer, type, advance, 0))
 #define KrProduceTokenOffset(type, advance, offset) (KrProduceToken_(tokenizer, type, advance, offset))
 
+#define KrProduceToken1(type) KrProduceToken(type, 1)
+#define KrProduceToken2(one, c, two) KrProduceToken2_(tokenizer, one, c, two)
+
 #define KrTokenizerMatch(match) (KrTokenizerMatch_(tokenizer, match))
 
 KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
@@ -23,34 +26,31 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
 
     // NOTE(kyren): single char
     case '+': {
-      return KrProduceToken(KrTokenType_plus, 1);
+      return KrProduceToken1(KrTokenType_plus);
     }break;
     case '-': {
-      return KrProduceToken(KrTokenType_minus, 1);
+      return KrProduceToken1(KrTokenType_minus);
     }break;
     case '*': {
-      return KrProduceToken(KrTokenType_star, 1);
+      return KrProduceToken1(KrTokenType_star);
     }break;
     case '/': {
-      return KrProduceToken(KrTokenType_slash, 1);
+      return KrProduceToken1(KrTokenType_slash);
     }break;
     case ';': {
-      return KrProduceToken(KrTokenType_semicolon, 1);
+      return KrProduceToken1(KrTokenType_semicolon);
     }break;
 
     // NOTE(kyren): one or two chars
     case '=': {
-      KrTokenizerAdvance(tokenizer);
-      if (KrTokenizerMatch('=')) {
-        return KrProduceTokenOffset(KrTokenType_equalEqual, 0, -2);
-      }
-      return KrProduceTokenOffset(KrTokenType_equal, 0, -1);
+      return KrProduceToken2(KrTokenType_equal, '=', KrTokenType_equalEqual);
     }break;
 
+    // NOTE(kyren): Keywords
+    // TODO(kyren): add keywords
+
     default: {
-      // TODO(kyren): produce an unknown/invalid token
-      // Potentially even stop execution and just return EOF?
-      return KrProduceToken(KrTokenType_char, 1);
+      return KrProduceToken(KrTokenType_unknown, 1);
     }break;
   }
 
@@ -84,9 +84,6 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
     }break;
 
     case KrTokenType_equalEqual: {
-      // TODO: do we want to also print the location so we can verify it?
-      // String literal = (String){ .value = src.value + token.index, .length = 2 };
-      // return Sprintf(arena, "%S", literal);
       return S("<equal_equal>");
     }break;
 
@@ -94,12 +91,16 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
       return Sprintf(arena, "'%S'", KrTokenString(tokenizer, token));
     }break;
 
+    case KrTokenType_unknown: {
+      return S("<unknown>");
+    }break;
+
     case KrTokenType_eof: {
       return S("<eof>");
     }break;
 
     default: {
-      return S("<unknown>");
+      Assert(!"Missing token type");
     }break;
   }
 
@@ -109,6 +110,14 @@ fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance
   KrToken token = (KrToken){ .index = tokenizer->current+offset, .type = type };
   tokenizer->current += advance;
   return token;
+}
+
+fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, KrTokenType one, char c, KrTokenType two) {
+  KrTokenizerAdvance(tokenizer);
+  if (KrTokenizerMatch(c)) {
+    return KrProduceTokenOffset(two, 0, -2);
+  }
+  return KrProduceTokenOffset(one, 0, -1);
 }
 
 fn char KrTokenizerAdvance(KrTokenizer* tokenizer) {
@@ -172,6 +181,10 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_i32: {
     }break;
 
+    case KrTokenType_unknown: {
+      length = 1;
+    }break;
+
     case KrTokenType_eof: {
       return (String){0};
     }break;
@@ -182,8 +195,31 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
 
   }
 
-  Assert(length > 0 && "Missing token type");
+  Assert(length > 0 && "Unhandled token type");
 
   return (String){ .value = tokenizer->src.value + token.index, .length = length };
 }
 
+void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end) {
+  while (true) {
+    KrToken token = KrTokenizerNext(tokenizer);
+    if (token.type == KrTokenType_eof) {
+      break;
+    }
+    Printf("%S%c", KrTokenSprint(arena, tokenizer, token), sep);
+  }
+  KrToken token = KrTokenizerNext(tokenizer);
+  Printf("%S%c", KrTokenSprint(arena, tokenizer, token), end);
+}
+
+void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end) {
+  while (true) {
+    KrToken token = KrTokenizerNext(tokenizer);
+    if (token.type == KrTokenType_eof) {
+      break;
+    }
+    Printf("%S%c", KrTokenString(tokenizer, token), sep);
+  }
+  KrToken token = KrTokenizerNext(tokenizer);
+  Printf("%S%c", KrTokenString(tokenizer, token), end);
+}

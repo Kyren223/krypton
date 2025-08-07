@@ -357,7 +357,7 @@ fn void* ArenaPush(Arena* arena, u64 size, u64 align, char* allocationSiteFile, 
   if (current->commit < posPost) {
     u64 commitPostAligned = posPost + current->commitSize-1;
     commitPostAligned -= commitPostAligned % current->commitSize;
-    u64 commitPostClamped = ClampTop(commitPostAligned, current->reserve); // TODO: maybe here?
+    u64 commitPostClamped = ClampTop(commitPostAligned, current->reserve);
     u64 commitSize = commitPostClamped - current->commit;
     u8* commitPtr = (u8*)current + current->commit;
 
