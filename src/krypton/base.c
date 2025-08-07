@@ -6,6 +6,22 @@
 
 /// --- Strings --- ///
 
+fn b32 IsAlpha(char c) {
+  return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
+}
+
+fn b32 IsNumeric(char c) {
+  return ('0' <= c && c <= '9');
+}
+
+fn b32 IsAlphaNumeric(char c) {
+  return IsAlpha(c) || IsNumeric(c);
+}
+
+fn b32 IsWhitespace(char c) {
+  return c == '\r' || c == '\n' || c == '\t' || c == ' ';
+}
+
 fn i32 CStrlen(char* cstr) {
   Assert(cstr != null);
 

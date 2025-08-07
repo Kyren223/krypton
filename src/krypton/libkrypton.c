@@ -15,13 +15,20 @@
 KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
   Assert(tokenizer->src.length <= MaxUint(24))
 
-  String src = tokenizer->src;
-
-  if (tokenizer->current >= src.length) {
+  if (KrIsAtEnd(tokenizer)) {
     return KrProduceToken(KrTokenType_eof, 0);
   }
 
   char c = tokenizer->src.value[tokenizer->current];
+  while (IsWhitespace(c)) {
+    tokenizer->current++;
+    c = tokenizer->src.value[tokenizer->current];
+
+    if (KrIsAtEnd(tokenizer)) {
+      return KrProduceToken(KrTokenType_eof, 0);
+    }
+  }
+
   switch (c) {
 
     // NOTE(kyren): single char
@@ -46,17 +53,16 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
       return KrProduceToken2(KrTokenType_equal, '=', KrTokenType_equalEqual);
     }break;
 
-    // NOTE(kyren): Keywords
-    // TODO(kyren): add keywords
-
-    default: {
-      return KrProduceToken(KrTokenType_unknown, 1);
-    }break;
   }
 
+  // NOTE(kyren): Literals
+  // TODO(kyren): add keywords
+
+  return KrProduceToken(KrTokenType_unknown, 1);
 }
 
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
+
   switch (token.type) {
 
     case KrTokenType_plus: {
@@ -99,11 +105,29 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
       return S("<eof>");
     }break;
 
-    default: {
-      Assert(!"Missing token type");
+    case KrTokenType_identifier: {
+      // TODO(kyren): Re-calculate identifier length and display it instead
+      return S("<ident>");
+    }break;
+    case KrTokenType_number: {
+      // TODO(kyren): Re-calculate number length and display it instead
+      return S("<number>");
+    }break;
+    case KrTokenType_string: {
+      // TODO(kyren): Re-calculate string length and display it instead
+      return S("<string>");
+    }break;
+    case KrTokenType_const: {
+    }break;
+    case KrTokenType_fn: {
+    }break;
+    case KrTokenType_return: {
+    }break;
+    case KrTokenType_i32:break; {
     }break;
   }
 
+  Assert(!"Missing token type");
 }
 
 fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance, i32 offset) {
@@ -189,10 +213,6 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
       return (String){0};
     }break;
 
-    default: {
-      Assert(!"Missing token type");
-    }break;
-
   }
 
   Assert(length > 0 && "Unhandled token type");
@@ -223,3 +243,17 @@ void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end) {
   KrToken token = KrTokenizerNext(tokenizer);
   Printf("%S%c", KrTokenString(tokenizer, token), end);
 }
+
+fn b32 KrIsIdentifierStart(char c) {
+  return IsAlpha(c) || c == '_';
+}
+
+fn b32 KrIsIdentifier(char c) {
+  return IsAlphaNumeric(c) || c == '_';
+}
+
+fn b32 KrIsAtEnd(KrTokenizer* tokenizer) {
+  return tokenizer->current >= tokenizer->src.length;
+}
+
+

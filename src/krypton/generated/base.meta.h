@@ -50,6 +50,10 @@ typedef struct  Temp Temp;
 #ifdef BASE_FUNCTIONS
 
 /// --- Strings --- //
+fn b32    IsAlpha        (char c);
+fn b32    IsNumeric      (char c);
+fn b32    IsAlphaNumeric (char c);
+fn b32    IsWhitespace   (char c);
 fn i32    CStrlen        (char* cstr);
 fn String Sprintf        (Arena* arena, const char* fmt, ...);
 fn char*  SprintfCallback(const char* buf, void* puser, int len);

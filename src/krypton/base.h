@@ -250,7 +250,7 @@
 #define StaticAssert(expr, msg) typedef char static_assert_##msg[(expr) ? 1 : -1]
 
 #ifdef BUILD_SAFE
-# define Assert(expr) if (!(expr)) { (*(volatile int*)0); }
+# define Assert(expr) if (!(expr)) { (*(volatile int*)0); UNREACHABLE(); }
 #else
 # define Assert(expr) if (!(expr)) { UNREACHABLE(); }
 #endif
