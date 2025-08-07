@@ -7,10 +7,12 @@
 #include "platform.h"
 #include "base.h"
 #include "krypton_main.h"
+#include "libkrypton.h"
 
 /// --- C/C++ Files --- ///
 #include "base.c"
 #include "platform.c"
+#include "libkrypton.c"
 
 /// --- Entry Point --- ///
 
@@ -34,7 +36,6 @@ fn i32 KryptonMain(i32 argc, String* argv) {
   }
   Printf("%s\n\n", argv[argc-1]);
 
-
   Arena* arena = ArenaAlloc(.commitSize = 4096);
   Repl(arena);
   ArenaRelease(arena);
@@ -44,13 +45,33 @@ fn i32 KryptonMain(i32 argc, String* argv) {
 
 fn void Repl(Arena* arena) {
   for (;;) {
-    Printf("> ");
-    String line = OsReadLine(arena);
+    Temp temp = TempBegin(arena);
 
-    Printf("echo '%S'\n", line);
+    Printf("> ");
+    String line = OsReadLine(temp.arena);
+
+    KrTokenizer tokenizer = {0};
+    tokenizer.filename = S("REPL");
+    tokenizer.src = line;
 
     if (StrEqFIC(line, S("exit")) || StrEqFIC(line, S("quit"))) {
       break;
     }
+
+    while (true) {
+      KrToken token = KrTokenizerNext(&tokenizer);
+
+      if (token.type == KrTokenType_EOF) {
+        break;
+      }
+
+      String stoken = KrTokenSprint(temp.arena, tokenizer, token);
+      Printf("%S ", stoken);
+    }
+    KrToken token = KrTokenizerNext(&tokenizer);
+    String stoken = KrTokenSprint(temp.arena, tokenizer, token);
+    Printf("%S\n", stoken);
+
+    TempEnd(temp);
   }
 }

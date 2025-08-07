@@ -223,5 +223,9 @@ int main(void)
 	// Platform Linux
 	GenDefsPrototypes("../src/krypton/platform_linux.h", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_DEFS");
 	GenFunctionPrototypes("../src/krypton/platform_linux.c", "../src/krypton/generated/platform_linux.meta.h", "PLATFORM_LINUX_FUNCTIONS", 1);
+
+  // libkrypton
+	GenDefsPrototypes("../src/krypton/libkrypton.h", "../src/krypton/generated/libkrypton.meta.h", "LIBKRYPTON_DEFS");
+	GenFunctionPrototypes("../src/krypton/libkrypton.c", "../src/krypton/generated/libkrypton.meta.h", "LIBKRYPTON_FUNCTIONS", 1);
 }
 
