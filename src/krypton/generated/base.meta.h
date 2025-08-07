@@ -52,15 +52,17 @@ typedef struct  Temp Temp;
 #ifdef BASE_FUNCTIONS
 
 /// --- Strings --- //
-fn i32    CStrlen       (char* cstr);
-fn i32    Printf        (const char* fmt, ...);
-fn char*  PrintfCallback(const char* buf, void* user, int len);
-fn void   Print         (String str);
-fn String StrFrom       (String s, i64 from);
-fn String StrFromTo     (String s, i64 from, i64 to);
-fn i32    StrCmp        (String s1, String s2);
-fn b32    StrEq         (String s1, String s2);
-fn b32    StrEqFIC      (String s1, String s2);
+fn i32    CStrlen        (char* cstr);
+fn String Sprintf        (Arena* arena, const char* fmt, ...);
+fn char*  SprintfCallback(const char* buf, void* puser, int len);
+fn i32    Printf         (const char* fmt, ...);
+fn char*  PrintfCallback (const char* buf, void* user, int len);
+fn void   Print          (String str);
+fn String StrFrom        (String s, i64 from);
+fn String StrFromTo      (String s, i64 from, i64 to);
+fn i32    StrCmp         (String s1, String s2);
+fn b32    StrEq          (String s1, String s2);
+fn b32    StrEqFIC       (String s1, String s2);
 
 /// --- Files --- //
 

@@ -21,6 +21,40 @@ fn i32 CStrlen(char* cstr) {
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 
+fn String Sprintf(Arena* arena, const char* fmt, ...) {
+  char buf[STB_SPRINTF_MIN];
+
+  struct { Arena* arena; char* start; } user;
+  user.arena = arena;
+  user.start = null;
+
+  int len;
+  va_list va;
+  va_start(va, fmt);
+  len = stbsp_vsprintfcb(SprintfCallback, &user, buf, fmt, va);
+  va_end(va);
+
+  return (String){ .value = user.start, .length = len };
+}
+
+fn char* SprintfCallback(const char* buf, void* puser, int len) {
+  struct { Arena* arena; char* start; }* user = puser;
+
+  void* backingBuf = PushArrayNoZero(user->arena, char, len);
+
+  if (!backingBuf) {
+    return 0; // stop, allocation failed
+  }
+
+  if (user->start == null) {
+    user->start = backingBuf;
+  }
+
+  MemCopy(backingBuf, buf, len);
+
+  return (char*)buf;
+}
+
 fn i32 Printf(const char* fmt, ...) {
   char buf[STB_SPRINTF_MIN];
 
