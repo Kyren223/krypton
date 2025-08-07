@@ -1,0 +1,5 @@
+
+const double = fn(param i32) i32 {
+    const b i32 = param * 2;
+    return b;
+}

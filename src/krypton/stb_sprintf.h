@@ -635,7 +635,7 @@ STBSP__PUBLICDEF int STB_SPRINTF_DECORATE(vsprintfcb)(STBSP_SPRINTFCB *callback,
       {
          int *d = va_arg(va, int *);
          *d = tlen + (int)(bf - buf);
-      } break;
+      }break;
 
 #ifdef STB_SPRINTF_NOFLOAT
       case 'A':              // float

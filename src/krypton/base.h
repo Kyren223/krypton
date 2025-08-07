@@ -247,6 +247,42 @@
 # error You tried to build with an unsupported compiler. Currently, only clang, gcc and msvc are supported.
 #endif
 
+#define StaticAssert(expr, msg) typedef char static_assert_##msg[(expr) ? 1 : -1]
+
+#ifdef BUILD_SAFE
+# define Assert(expr) if (!(expr)) { (*(volatile int*)0); }
+#else
+# define Assert(expr) if (!(expr)) { UNREACHABLE(); }
+#endif
+
+#if COMPILER_MSVC
+# if defined(__SANITIZE_ADDRESS__)
+#  define ASAN_ENABLED 1
+#  define NO_ASAN __declspec(no_sanitize_address)
+# else
+#  define NO_ASAN
+# endif
+#elif COMPILER_CLANG
+# if defined(__has_feature)
+#  if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__)
+#   define ASAN_ENABLED 1
+#  endif
+# endif
+# define NO_ASAN __attribute__((no_sanitize("address")))
+#else
+# define NO_ASAN
+#endif
+
+#if BUILD_SAFE && ASAN_ENABLED
+C_LINKAGE void __asan_poison_memory_region(void const volatile* addr, size_t size);
+C_LINKAGE void __asan_unpoison_memory_region(void const volatile* addr, size_t size);
+# define AsanPoisonMemoryRegion(addr, size)   __asan_poison_memory_region((addr), (size))
+# define AsanUnpoisonMemoryRegion(addr, size) __asan_unpoison_memory_region((addr), (size))
+#else
+# define AsanPoisonMemoryRegion(addr, size)   ((void)(addr), (void)(size))
+# define AsanUnpoisonMemoryRegion(addr, size) ((void)(addr), (void)(size))
+#endif
+
 /// --- Types --- ///
 
 #include <stdint.h>
@@ -287,44 +323,6 @@ typedef intptr_t  iptr;
 
 #define Likely(expr)            Expect(expr,1)
 #define Unlikely(expr)          Expect(expr,0)
-
-/// --- Asserts --- ///
-
-#define StaticAssert(expr, msg) typedef char static_assert_##msg[(expr) ? 1 : -1]
-
-#ifdef BUILD_SAFE
-# define Assert(expr) if (!(expr)) { UNREACHABLE(); }
-#else
-# define Assert(expr)
-#endif
-
-#if COMPILER_MSVC
-# if defined(__SANITIZE_ADDRESS__)
-#  define ASAN_ENABLED 1
-#  define NO_ASAN __declspec(no_sanitize_address)
-# else
-#  define NO_ASAN
-# endif
-#elif COMPILER_CLANG
-# if defined(__has_feature)
-#  if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__)
-#   define ASAN_ENABLED 1
-#  endif
-# endif
-# define NO_ASAN __attribute__((no_sanitize("address")))
-#else
-# define NO_ASAN
-#endif
-
-#if BUILD_SAFE && ASAN_ENABLED
-C_LINKAGE void __asan_poison_memory_region(void const volatile* addr, size_t size);
-C_LINKAGE void __asan_unpoison_memory_region(void const volatile* addr, size_t size);
-# define AsanPoisonMemoryRegion(addr, size)   __asan_poison_memory_region((addr), (size))
-# define AsanUnpoisonMemoryRegion(addr, size) __asan_unpoison_memory_region((addr), (size))
-#else
-# define AsanPoisonMemoryRegion(addr, size)   ((void)(addr), (void)(size))
-# define AsanUnpoisonMemoryRegion(addr, size) ((void)(addr), (void)(size))
-#endif
 
 /// --- Metagen --- ///
 
@@ -374,6 +372,12 @@ struct String
 #define ClampBottom(x, b) Max(x, b)
 #define Clamp(a, x, b) (((X) < (A)) ? (A) : ((X) > (B)) ? (B) : (X))
 
+#define MaxUint(bits) (((u64)1 << (bits))-1)
+#define MinUint(bits) (0)
+
+#define MaxInt(bits) (((i64)1 << ((bits)-1))-1)
+#define MinInt(bits) (-(i64)1 << ((bits)-1))
+
 /// --- Memory --- ///
 
 #if COMPILER_MSVC
@@ -396,8 +400,8 @@ struct String
 
 enum ArenaFlags 
 {
-  ArenaFlags_NoChain    = (1 << 0),
-  ArenaFlags_LargePages = (1 << 1),
+  ArenaFlags_noChain    = (1 << 0),
+  ArenaFlags_largePages = (1 << 1),
 };
 
 struct ArenaParams 

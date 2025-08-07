@@ -5,7 +5,7 @@
 - Function names - StructClassName
 - Struct names - StructName
 - Field names - fieldName
-- Enum names - EnumName_VariantName
+- Enum names - EnumName_variantName
 - Variable names - variableName
 - Global variable names - global_variable_name
 

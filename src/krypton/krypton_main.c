@@ -32,9 +32,9 @@ fn i32 KryptonMain(i32 argc, String* argv) {
 
   Print(S("\nArgs:\n"));
   for (i32 i = 0; i < argc-1; i++) {
-    Printf("%s ", argv[i]);
+    Printf("%S ", argv[i]);
   }
-  Printf("%s\n\n", argv[argc-1]);
+  Printf("%S\n\n", argv[argc-1]);
 
   Arena* arena = ArenaAlloc(.commitSize = 4096);
   Repl(arena);
@@ -61,15 +61,15 @@ fn void Repl(Arena* arena) {
     while (true) {
       KrToken token = KrTokenizerNext(&tokenizer);
 
-      if (token.type == KrTokenType_EOF) {
+      if (token.type == KrTokenType_eof) {
         break;
       }
 
-      String stoken = KrTokenSprint(temp.arena, tokenizer, token);
+      String stoken = KrTokenSprint(temp.arena, &tokenizer, token);
       Printf("%S ", stoken);
     }
     KrToken token = KrTokenizerNext(&tokenizer);
-    String stoken = KrTokenSprint(temp.arena, tokenizer, token);
+    String stoken = KrTokenSprint(temp.arena, &tokenizer, token);
     Printf("%S\n", stoken);
 
     TempEnd(temp);

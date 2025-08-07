@@ -244,7 +244,7 @@ fn Arena* ArenaAlloc_(ArenaParams* params) {
   u64 reserveSize = params->reserveSize;
   u64 commitSize = params->commitSize;
 
-  if (params->flags & ArenaFlags_LargePages) {
+  if (params->flags & ArenaFlags_largePages) {
     reserveSize = MemAlignPow2(reserveSize, OsSysInfo()->largePageSize);
     commitSize  = MemAlignPow2(commitSize,  OsSysInfo()->largePageSize);
   } else {
@@ -255,7 +255,7 @@ fn Arena* ArenaAlloc_(ArenaParams* params) {
   // NOTE(kyren): reserve/commit initial block
   void* base = params->optionalBackingBuffer;
   if (base == 0) {
-    if (params->flags & ArenaFlags_LargePages) {
+    if (params->flags & ArenaFlags_largePages) {
       base = OsReserveLarge(reserveSize);
       OsCommitLarge(base, commitSize);
     } else {
@@ -305,7 +305,7 @@ fn void* ArenaPush(Arena* arena, u64 size, u64 align, char* allocationSiteFile, 
   u64 posPost = posPre + size;
 
   // NOTE(kyren): chain, if needed
-  if (current->reserve < posPost && !(arena->flags & ArenaFlags_NoChain)) {
+  if (current->reserve < posPost && !(arena->flags & ArenaFlags_noChain)) {
     Arena* newBlock = 0;
 
 #if ARENA_FREE_LIST
@@ -361,7 +361,7 @@ fn void* ArenaPush(Arena* arena, u64 size, u64 align, char* allocationSiteFile, 
     u64 commitSize = commitPostClamped - current->commit;
     u8* commitPtr = (u8*)current + current->commit;
 
-    if (current->flags & ArenaFlags_LargePages) {
+    if (current->flags & ArenaFlags_largePages) {
       OsCommitLarge(commitPtr, commitSize);
     } else {
       OsCommit(commitPtr, commitSize);

@@ -19,18 +19,43 @@ struct KrTokenizer
 
 enum KrTokenType 
 {
-  KrTokenType_CharLiteral,
-  KrTokenType_EOF,
+  // NOTE(kyren): Single char
+  KrTokenType_semicolon,
+  KrTokenType_plus,
+  KrTokenType_minus,
+  KrTokenType_star,
+  KrTokenType_slash,
+  // KrTokenType_,
+
+  // NOTE(kyren): One or two chars
+  KrTokenType_equal,
+  KrTokenType_equalEqual,
+
+  // NOTE(kyren): Literals
+  KrTokenType_identifier,
+  KrTokenType_number,
+  KrTokenType_char,
+  KrTokenType_string,
+
+  // NOTE(kyren): Keywords
+  KrTokenType_const,
+  KrTokenType_fn,
+  KrTokenType_return,
+  KrTokenType_i32,
+  // KrTokenType_,
+
+  KrTokenType_eof,
 };
 
 struct KrToken 
 {
-  KrTokenType type;
-  u32 index;
+  u32 index : 24;
+  KrTokenType type : 8;
 };
 
+StaticAssert(sizeof(KrToken) == 4, expected_4_byte_packed_struct);
 
 KrToken KrTokenizerNext(KrTokenizer* tokenizer);
-String KrTokenSprint(Arena* arena, KrTokenizer tokenizer, KrToken token);
+String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
 
 #endif

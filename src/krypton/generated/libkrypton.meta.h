@@ -8,6 +8,9 @@ typedef struct  KrToken KrToken;
 #endif
 
 #ifdef LIBKRYPTON_FUNCTIONS
-fn KrToken KrTokenOf(KrTokenizer* tokenizer, KrTokenType type);
+fn KrToken KrProduceToken_   (KrTokenizer* tokenizer, KrTokenType type, u32 advance, i32 offset);
+fn char    KrTokenizerAdvance(KrTokenizer* tokenizer);
+fn b32     KrTokenizerMatch_ (KrTokenizer* tokenizer, char match);
+fn String  KrTokenString     (KrTokenizer* tokenizer, KrToken token);
 
 #endif
