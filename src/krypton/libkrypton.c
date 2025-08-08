@@ -21,6 +21,7 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
 
   char c = tokenizer->src.value[tokenizer->current];
   while (IsWhitespace(c)) {
+    FlagClear(tokenizer->flags, KrTokenizerFlags_noLiteral);
     tokenizer->current++;
     if (KrIsAtEnd(tokenizer)) {
       return KrProduceToken(KrTokenType_eof, 0);
