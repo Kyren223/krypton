@@ -371,7 +371,7 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_number: {
       u32 index = token.index;
 
-      u8 base = 10;
+      i8 base = 10;
 
       while (index < tokenizer->src.length) {
         char c = tokenizer->src.value[index];
@@ -387,7 +387,11 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
             case 'x': {
               base = 16;
             }break;
+            default: {
+              base = -1;
+            }break;
           }
+          if (base == -1) break;
           index++;
           continue;
         }
