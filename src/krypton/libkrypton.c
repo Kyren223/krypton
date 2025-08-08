@@ -80,7 +80,15 @@ fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c) {
     tokenizer->current++;
   }
 
-  // TODO(kyren): add keywords
+  // NOTE(kyren): keywords
+  u32 length = tokenizer->current - start;
+  String identifier = (String){ .value = tokenizer->src.value + start, .length = length };
+  for (u32 i = 0; i < SizeofArray(kr_keyword_entries); i++) {
+    KrKeywordEntry keyword = kr_keyword_entries[i];
+    if (StrEq(identifier, keyword.name)) {
+      return KrProduceTokenLoc(keyword.type, 0, start);
+    }
+  }
 
   return KrProduceTokenLoc(KrTokenType_identifier, 0, start);
 }
@@ -141,13 +149,18 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
       // TODO(kyren): Re-calculate string length and display it instead
       return S("<string>");
     }break;
+
     case KrTokenType_const: {
+      return S("<const>");
     }break;
     case KrTokenType_fn: {
+      return S("<fn>");
     }break;
     case KrTokenType_return: {
+      return S("<return>");
     }break;
-    case KrTokenType_i32:break; {
+    case KrTokenType_i32: {
+      return S("<i32>");
     }break;
   }
 
@@ -230,15 +243,13 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     }break;
 
     // NOTE(kyren): keywords
-    // TODO(kyren): add lengths
-    // Consider not hardocing and instead use a lookup table for keywords?
-    case KrTokenType_const: {
-    }break;
-    case KrTokenType_fn: {
-    }break;
-    case KrTokenType_return: {
-    }break;
+    case KrTokenType_const:
+    case KrTokenType_fn:
+    case KrTokenType_return:
     case KrTokenType_i32: {
+      u32 index = token.type - kr_first_keyword;
+      KrKeywordEntry keyword = kr_keyword_entries[index];
+      length = keyword.name.length;
     }break;
 
     case KrTokenType_unknown: {

@@ -56,6 +56,25 @@ struct KrToken
 
 StaticAssert(sizeof(KrToken) == 4, expected_4_byte_packed_struct);
 
+struct KrKeywordEntry 
+{
+  String name;
+  KrTokenType type;
+};
+
+// NOTE(kyren): this is subtracted from a keyword to get
+// it's index in the kr_keyword_entries table
+// This means that all keywords must come in the same order
+// as their enum counterpart and be continuous
+global u32 kr_first_keyword = KrTokenType_const;
+
+global KrKeywordEntry kr_keyword_entries[] = {
+  {S("const"), KrTokenType_const},
+  {S("fn"), KrTokenType_fn},
+  {S("return"), KrTokenType_return},
+  {S("i32"), KrTokenType_i32},
+};
+
 KrToken KrTokenizerNext(KrTokenizer* tokenizer);
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
 void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end);

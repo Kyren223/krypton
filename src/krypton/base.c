@@ -281,7 +281,6 @@ fn Arena* ArenaAlloc_(ArenaParams* params) {
   }
 
   // NOTE(kyren): panic on arena creation failure
-  // TODO: test this
   if (Unlikely(base == 0)) {
     Printf("%s:%d: runtime error: fatal allocation failure\n", params->allocationSiteFile, params->allocationSiteLine);
     OsAbort(1);

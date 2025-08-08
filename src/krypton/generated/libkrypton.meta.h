@@ -4,6 +4,7 @@
 typedef struct  KrTokenizer KrTokenizer;
 typedef enum  KrTokenType KrTokenType;
 typedef struct  KrToken KrToken;
+typedef struct  KrKeywordEntry KrKeywordEntry;
 
 #endif
 

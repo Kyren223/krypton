@@ -378,6 +378,8 @@ struct String
 #define MaxInt(bits) (((i64)1 << ((bits)-1))-1)
 #define MinInt(bits) (-(i64)1 << ((bits)-1))
 
+#define SizeofArray(arr) (sizeof(arr)/(sizeof((arr)[0])))
+
 /// --- Memory --- ///
 
 #if COMPILER_MSVC
