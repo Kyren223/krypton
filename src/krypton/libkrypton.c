@@ -72,6 +72,10 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
     return KrTokenizeIdentifier(tokenizer, c);
   }
 
+  if (KrIsNumberStart(c)) {
+    return KrTokenizeNumber(tokenizer, c);
+  }
+
   return KrProduceToken(KrTokenType_unknown, 1);
 }
 
@@ -103,6 +107,29 @@ fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c) {
   }
 
   return KrProduceTokenLoc(KrTokenType_identifier, 0, start);
+}
+
+fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
+  // TODO(kyren): add support for hexadecimal, underscores, etc
+
+  // TODO: parse number
+  u32 start = tokenizer->current;
+
+  // NOTE(kyren): skip first char
+  tokenizer->current++;
+  while (true) {
+    if (KrIsAtEnd(tokenizer)) {
+      break;
+    }
+
+    c = tokenizer->src.value[tokenizer->current];
+    if (!KrIsNumber(c)) {
+      break;
+    }
+    tokenizer->current++;
+  }
+
+  return KrProduceTokenLoc(KrTokenType_number, 0, start);
 }
 
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
@@ -267,6 +294,15 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
       }
     }break;
     case KrTokenType_number: {
+      length = 0;
+      u32 index = token.index;
+      while (index < tokenizer->src.length) {
+        char c = tokenizer->src.value[index++];
+        if (!KrIsNumber(c)) {
+          break;
+        }
+        length++;
+      }
     }break;
     case KrTokenType_char: {
       length = 1;
@@ -333,8 +369,16 @@ fn b32 KrIsIdentifier(char c) {
   return IsAlphaNumeric(c) || c == '_';
 }
 
+fn b32 KrIsNumberStart(char c) {
+  return IsNumeric(c);
+}
+
+fn b32 KrIsNumber(char c) {
+  // TODO(kyren): add support for hexadecimal, underscores, etc
+  return KrIsNumberStart(c);
+}
+
 fn b32 KrIsAtEnd(KrTokenizer* tokenizer) {
   return tokenizer->current >= tokenizer->src.length;
 }
-
 
