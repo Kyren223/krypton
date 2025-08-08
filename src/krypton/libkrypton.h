@@ -25,6 +25,10 @@ enum KrTokenType
   KrTokenType_minus,
   KrTokenType_star,
   KrTokenType_slash,
+  KrTokenType_lparen,
+  KrTokenType_rparen,
+  KrTokenType_lbrace,
+  KrTokenType_rbrace,
   // KrTokenType_,
 
   // NOTE(kyren): One or two chars

@@ -47,6 +47,18 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
     case ';': {
       return KrProduceToken1(KrTokenType_semicolon);
     }break;
+    case '(': {
+      return KrProduceToken1(KrTokenType_lparen);
+    }break;
+    case ')': {
+      return KrProduceToken1(KrTokenType_rparen);
+    }break;
+    case '{': {
+      return KrProduceToken1(KrTokenType_lbrace);
+    }break;
+    case '}': {
+      return KrProduceToken1(KrTokenType_rbrace);
+    }break;
 
     // NOTE(kyren): one or two chars
     case '=': {
@@ -115,6 +127,22 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
 
     case KrTokenType_semicolon: {
       return S("<semicolon>");
+    }break;
+
+    case KrTokenType_lparen: {
+      return S("<lparen>");
+    }break;
+
+    case KrTokenType_rparen: {
+      return S("<rparen>");
+    }break;
+
+    case KrTokenType_lbrace: {
+      return S("<lbrace>");
+    }break;
+
+    case KrTokenType_rbrace: {
+      return S("<rbrace>");
     }break;
 
     case KrTokenType_equal: {
@@ -212,6 +240,10 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_minus:
     case KrTokenType_star:
     case KrTokenType_slash:
+    case KrTokenType_lparen:
+    case KrTokenType_rparen:
+    case KrTokenType_lbrace:
+    case KrTokenType_rbrace:
     case KrTokenType_equal: {
       length = 1;
     }break;
