@@ -11,11 +11,35 @@ fn b32 IsAlpha(char c) {
 }
 
 fn b32 IsNumeric(char c) {
-  return ('0' <= c && c <= '9');
+  return IsNumericBase(c, 10);
 }
 
 fn b32 IsAlphaNumeric(char c) {
   return IsAlpha(c) || IsNumeric(c);
+}
+
+fn b32 IsNumericBase(char c, u8 base) {
+  switch (base) {
+    case 2: {
+      return c == '0' || c == '1';
+    }break;
+
+    case 8: {
+      return ('0' <= c && c <= '7');
+    }break;
+
+    case 10: {
+      return ('0' <= c && c <= '9');
+    }break;
+
+    case 16: {
+      return ('0' <= c && c <= '9') || ('A' <= c && c <= 'F') || ('a' <= c && c <= 'f');
+    }break;
+
+    default: {
+      UNREACHABLE();
+    };
+  }
 }
 
 fn b32 IsWhitespace(char c) {

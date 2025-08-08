@@ -10,11 +10,21 @@
 #define LIBKRYPTON_FUNCTIONS
 #include "generated/libkrypton.meta.h"
 
+enum KrTokenizerFlags 
+{
+  // NOTE(kyren): indicates the current token shouldn't be
+  // a literal or a keyword (char, string, number, keyword)
+  KrTokenizerFlags_noLiteral = (1 << 0),
+
+  // KrTokenizerFlags_ = (1 << 1),
+};
+
 struct KrTokenizer 
 {
   String filename;
   String src;
   u32 current;
+  KrTokenizerFlags flags;
 };
 
 enum KrTokenType 
@@ -50,6 +60,9 @@ enum KrTokenType
 
   KrTokenType_eof,
   KrTokenType_unknown,
+  KrTokenType_illegalIdentifier,
+  KrTokenType_illegalKeyword,
+  KrTokenType_illegalNumber,
 };
 
 struct KrToken 
@@ -66,11 +79,11 @@ struct KrKeywordEntry
   KrTokenType type;
 };
 
-// NOTE(kyren): this is subtracted from a keyword to get
-// it's index in the kr_keyword_entries table
-// This means that all keywords must come in the same order
-// as their enum counterpart and be continuous
+// NOTE(kyren): keyword range for table indexing or other things
+// first is inclusive, points to the first keywords
+// end is exclusive, points to the token immediately after the last keyword
 global u32 kr_first_keyword = KrTokenType_const;
+global u32 kr_end_keyword = KrTokenType_eof;
 
 global KrKeywordEntry kr_keyword_entries[] = {
   {S("const"), KrTokenType_const},
@@ -83,5 +96,6 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer);
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
 void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end);
 void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end);
+b32 KrIsKeyword(KrTokenType type);
 
 #endif

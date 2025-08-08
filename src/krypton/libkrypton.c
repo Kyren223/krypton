@@ -7,7 +7,7 @@
 #define KrProduceToken(type, advance) (KrProduceToken_(tokenizer, type, (advance), tokenizer->current))
 #define KrProduceTokenLoc(type, advance, location) (KrProduceToken_(tokenizer, type, advance, location))
 
-#define KrProduceToken1(type) KrProduceToken(type, 1)
+#define KrProduceToken1(type) KrProduceToken1_(tokenizer, type)
 #define KrProduceToken2(c, two, one) KrProduceToken2_(tokenizer, c, two, one)
 
 #define KrTokenizerMatch(match) (KrTokenizerMatch_(tokenizer, match))
@@ -69,10 +69,22 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
 
   // NOTE(kyren): Literals + Keywords
   if (KrIsIdentifierStart(c)) {
+    if (FlagExists(tokenizer->flags, KrTokenizerFlags_noLiteral)) {
+      KrToken token = KrTokenizeIdentifier(tokenizer, c);
+      b32 isKeyword = KrIsKeyword(token.type);
+      KrTokenType type = isKeyword ? KrTokenType_illegalKeyword : KrTokenType_illegalIdentifier;
+      return KrProduceTokenLoc(type, 0, token.index);
+    }
     return KrTokenizeIdentifier(tokenizer, c);
   }
 
   if (KrIsNumberStart(c)) {
+    if (FlagExists(tokenizer->flags, KrTokenizerFlags_noLiteral)) {
+      // NOTE(kyren): currently this flag is only set by a number
+      // so it's impossible for this to happen
+      // this might change in the future
+      UNREACHABLE();
+    }
     return KrTokenizeNumber(tokenizer, c);
   }
 
@@ -115,15 +127,60 @@ fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
   // TODO: parse number
   u32 start = tokenizer->current;
 
-  // NOTE(kyren): skip first char
-  tokenizer->current++;
+  // NOTE(kyren): get base
+  i8 base = -1;
+  if (c != '0') {
+    base = 10;
+  } else {
+
+    tokenizer->current += 1;
+    if (KrIsAtEnd(tokenizer)) {
+      // NOTE(kyren): produce just "0" as a number, and now it's EOF
+      return KrProduceTokenLoc(KrTokenType_number, 0, start);
+    }
+    c = tokenizer->src.value[tokenizer->current];
+
+    switch (c) {
+      case 'b': {
+        base = 2;
+      }break;
+
+      case 'o': {
+        base = 8;
+      }break;
+
+      case 'x': {
+        base = 16;
+      }break;
+    }
+
+    // NOTE(kyren): if no specifier, it's base 10
+    if (base == -1) {
+      base = 10;
+    } else {
+      tokenizer->current += 1;
+      if (KrIsAtEnd(tokenizer)) {
+        return KrProduceTokenLoc(KrTokenType_illegalNumber, 0, start);
+      }
+      c = tokenizer->src.value[tokenizer->current];
+    }
+
+
+    // TODO(kyren): handle `0.` case
+
+    if (!KrIsNumber(c, base)) {
+      FlagSet(tokenizer->flags, KrTokenizerFlags_noLiteral);
+      return KrProduceTokenLoc(KrTokenType_number, 0, start);
+    }
+  }
+
   while (true) {
     if (KrIsAtEnd(tokenizer)) {
       break;
     }
 
     c = tokenizer->src.value[tokenizer->current];
-    if (!KrIsNumber(c)) {
+    if (!KrIsNumber(c, base)) {
       break;
     }
     tokenizer->current++;
@@ -181,7 +238,7 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
     }break;
 
     case KrTokenType_char: {
-      return Sprintf(arena, "'%S'", KrTokenString(tokenizer, token));
+      return S("<char>");
     }break;
 
     case KrTokenType_unknown: {
@@ -192,19 +249,25 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
       return S("<eof>");
     }break;
 
+    case KrTokenType_illegalIdentifier: {
+      return S("<illegal-ident>");
+    }break;
     case KrTokenType_identifier: {
-      // TODO(kyren): Re-calculate identifier length and display it instead
       return S("<ident>");
     }break;
+    case KrTokenType_illegalNumber: {
+      return S("<illegal-number>");
+    }break;
     case KrTokenType_number: {
-      // TODO(kyren): Re-calculate number length and display it instead
       return S("<number>");
     }break;
     case KrTokenType_string: {
-      // TODO(kyren): Re-calculate string length and display it instead
       return S("<string>");
     }break;
 
+    case KrTokenType_illegalKeyword: {
+      return S("<illegal-keyword>");
+    }break;
     case KrTokenType_const: {
       return S("<const>");
     }break;
@@ -228,16 +291,20 @@ fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance
   return token;
 }
 
-fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, char c, KrTokenType two, KrTokenType one) {
-  u32 start = tokenizer->current;
-  KrTokenizerAdvance(tokenizer);
-  return KrProduceTokenLoc(KrTokenizerMatch(c) ? two : one, 0, start);
+fn KrToken KrProduceToken1_(KrTokenizer* tokenizer, KrTokenType type) {
+  // NOTE(kyren): single char are always not a literal
+  FlagClear(tokenizer->flags, KrTokenizerFlags_noLiteral);
+
+  return KrProduceToken(type, 1);
 }
 
-fn char KrTokenizerAdvance(KrTokenizer* tokenizer) {
-  char c = tokenizer->src.value[tokenizer->current];
+fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, char c, KrTokenType two, KrTokenType one) {
+  // NOTE(kyren): two chars are always not a literal
+  FlagClear(tokenizer->flags, KrTokenizerFlags_noLiteral);
+
+  u32 start = tokenizer->current;
   tokenizer->current += 1;
-  return c;
+  return KrProduceTokenLoc(KrTokenizerMatch(c) ? two : one, 0, start);
 }
 
 fn b32 KrTokenizerMatch_(KrTokenizer* tokenizer, char match) {
@@ -280,8 +347,11 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
       length = 2;
     }break;
 
+    // NOTE(kyren): we treat this like an identifier, bcz we can't
+    // index directly into the keyword table
+    case KrTokenType_illegalKeyword:
+    case KrTokenType_illegalIdentifier:
     // NOTE(kyren): literals
-    // TODO(kyren): add lengths
     case KrTokenType_identifier: {
       length = 0;
       u32 index = token.index;
@@ -293,21 +363,49 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
         length++;
       }
     }break;
+    case KrTokenType_illegalNumber: {
+      // TODO/NOTE(kyren): currently illegal numbers can
+      // occur only due to EOF, so this is fine
+      length = tokenizer->src.length - token.index;
+    }break;
     case KrTokenType_number: {
-      length = 0;
       u32 index = token.index;
+
+      u8 base = 10;
+
       while (index < tokenizer->src.length) {
-        char c = tokenizer->src.value[index++];
-        if (!KrIsNumber(c)) {
+        char c = tokenizer->src.value[index];
+
+        if (index-token.index == 1) {
+          switch (c) {
+            case 'b': {
+              base = 2;
+            }break;
+            case 'o': {
+              base = 8;
+            }break;
+            case 'x': {
+              base = 16;
+            }break;
+          }
+          index++;
+          continue;
+        }
+
+        if (!KrIsNumber(c, base)) {
           break;
         }
-        length++;
+        index++;
       }
+      length = index - token.index;
+
     }break;
     case KrTokenType_char: {
+      // TODO(kyren): add lengths (this is at least 3, for 'a' but might be more for '\xFF')
       length = 1;
     }break;
     case KrTokenType_string: {
+      // TODO(kyren): add lengths
     }break;
 
     // NOTE(kyren): keywords
@@ -373,12 +471,14 @@ fn b32 KrIsNumberStart(char c) {
   return IsNumeric(c);
 }
 
-fn b32 KrIsNumber(char c) {
-  // TODO(kyren): add support for hexadecimal, underscores, etc
-  return KrIsNumberStart(c);
+fn b32 KrIsNumber(char c, u8 base) {
+  return c == '_' || IsNumericBase(c, base);
 }
 
 fn b32 KrIsAtEnd(KrTokenizer* tokenizer) {
   return tokenizer->current >= tokenizer->src.length;
 }
 
+b32 KrIsKeyword(KrTokenType type) {
+  return kr_first_keyword <= type && type < kr_end_keyword;
+}
