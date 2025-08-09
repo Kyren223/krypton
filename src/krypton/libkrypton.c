@@ -4,6 +4,8 @@
 #include "libkrypton.h"
 #include "base.h"
 
+/// --- Tokenizer --- ///
+
 #define KrProduceToken(type, advance) (KrProduceToken_(tokenizer, type, (advance), tokenizer->current))
 #define KrProduceTokenLoc(type, advance, location) (KrProduceToken_(tokenizer, type, advance, location))
 
@@ -47,6 +49,9 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
     }break;
     case ';': {
       return KrProduceToken1(KrTokenType_semicolon);
+    }break;
+    case '.': {
+      return KrProduceToken1(KrTokenType_dot);
     }break;
     case '(': {
       return KrProduceToken1(KrTokenType_lparen);
@@ -214,6 +219,10 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
       return S("<semicolon>");
     }break;
 
+    case KrTokenType_dot: {
+      return S("<dot>");
+    }break;
+
     case KrTokenType_lparen: {
       return S("<lparen>");
     }break;
@@ -331,6 +340,7 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
   switch (token.type) {
     // NOTE(kyren): single char
     case KrTokenType_semicolon:
+    case KrTokenType_dot:
     case KrTokenType_plus:
     case KrTokenType_minus:
     case KrTokenType_star:
@@ -487,3 +497,10 @@ fn b32 KrIsAtEnd(KrTokenizer* tokenizer) {
 b32 KrIsKeyword(KrTokenType type) {
   return kr_first_keyword <= type && type < kr_end_keyword;
 }
+
+/// --- Parser --- ///
+
+KrNode* KrParse(KrParser* parser, Arena* arena) {
+  return null;
+}
+

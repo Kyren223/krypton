@@ -10,6 +10,8 @@
 #define LIBKRYPTON_FUNCTIONS
 #include "generated/libkrypton.meta.h"
 
+/// --- Tokenizer --- ///
+
 enum KrTokenizerFlags 
 {
   // NOTE(kyren): indicates the current token shouldn't be
@@ -31,6 +33,7 @@ enum KrTokenType
 {
   // NOTE(kyren): Single char
   KrTokenType_semicolon,
+  KrTokenType_dot,
   KrTokenType_plus,
   KrTokenType_minus,
   KrTokenType_star,
@@ -71,7 +74,7 @@ struct KrToken
   KrTokenType type : 8;
 };
 
-StaticAssert(sizeof(KrToken) == 4, expected_4_byte_packed_struct);
+StaticAssert(sizeof(KrToken) == 4, kr_expected_4_byte_token);
 
 struct KrKeywordEntry 
 {
@@ -97,5 +100,30 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
 void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end);
 void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end);
 b32 KrIsKeyword(KrTokenType type);
+
+/// --- Parser --- ///
+
+enum KrNodeType 
+{
+  KrNodeType_varDeclSimple,
+  KrNodeType_varDeclTyped,
+};
+
+struct KrNode 
+{
+  // NOTE(kyren): this is an index into an array
+  // of indices into a KrNode
+  u32 children : 24;
+  KrNodeType : 8;
+};
+
+StaticAssert(sizeof(KrNode) == 4, kr_expected_4_byte_node);
+
+struct KrParser 
+{
+  KrTokenizer tokenizer;
+};
+
+KrNode* KrParse(KrParser* parser, Arena* arena);
 
 #endif
