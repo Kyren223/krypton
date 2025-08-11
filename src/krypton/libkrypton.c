@@ -127,6 +127,12 @@ fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c) {
   return KrProduceTokenLoc(KrTokenType_identifier, 0, start);
 }
 
+KrToken KrTokenizerPeek(KrTokenizer tokenizer) {
+  // NOTE(kyren): pass by value so it doesn't modify the actual tokenizer
+  // this allows for just peeking without advancing
+  return KrTokenizerNext(&tokenizer);
+}
+
 fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
   // TODO(kyren): add support for hexadecimal, underscores, etc
 
@@ -498,60 +504,128 @@ b32 KrIsKeyword(KrTokenType type) {
   return kr_first_keyword <= type && type < kr_end_keyword;
 }
 
+fn b32 KrIsLiteral(KrTokenType type) {
+  // TODO(kyren): complete this with all literals
+  return type == KrTokenType_number || type == KrTokenType_identifier;
+}
+
+fn b32 KrIsOperator(KrTokenType type) {
+  // TODO(kyren): complete this with all operators
+  return type == KrTokenType_plus ||
+         type == KrTokenType_minus ||
+         type == KrTokenType_star ||
+         type == KrTokenType_slash;
+}
+
 /// --- Parser --- ///
 
 KrNode* KrParse(KrParser* parser) {
-  return KrParseExpr(parser);
-}
-
-fn KrNode* KrParseExpr(KrParser* parser) {
-  KrToken token = KrTokenizerNext(&parser->tokenizer);
 
   // NOTE(kyren): returns zeroed memory, so 0 children by default
   KrNode* node = PushSingle(parser->arena, KrNode);
+  parser->base = (u64)node;
 
-  switch (token.type) {
+  return KrParseExpr(parser, node, 0);
+}
 
-    // NOTE(kyren): Literals (no children)
+fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
+  KrToken lhsToken = KrTokenizerNext(&parser->tokenizer);
+  node->type = KrNodeType_literal;
+  node->token = lhsToken;
 
-    case KrTokenType_number: {
-      node->type = KrNodeType_literal;
-      node->token = token;
-    }break;
+  if (!KrIsLiteral(lhsToken.type)) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
 
-    case KrTokenType_identifier: {
-      node->type = KrNodeType_literal;
-      node->token = token;
-    }break;
+  while (true) {
+    KrToken opToken = KrTokenizerPeek(parser->tokenizer);
+    if (opToken.type == KrTokenType_eof) {
+      break;
+    }
 
+    if (!KrIsOperator(opToken.type)) {
+      // TODO(kyren): handle parsing errors
+      UNREACHABLE();
+    }
+
+    KrPrecedence precedence = KrInfixPrecendence(opToken.type);
+    if (precedence.left < minPrecedence) {
+      break;
+    }
+
+    KrTokenizerNext(&parser->tokenizer);
+
+    // NOTE(kyren): preallocate lhs and rhs nodes
+    KrNode* lhs = PushArray(parser->arena, KrNode, 2);
+    lhs->type = node->type;
+    lhs->token = node->token;
+
+    KrNode* rhs = lhs + 1;
+    KrParseExpr(parser, rhs, precedence.right);
+
+    node->type = KrNodeType_binaryOp;
+    node->token = opToken;
+    node->children = (u64)lhs - parser->base;
+    node->count = 2;
   }
 
   return node;
 }
 
-void KrParserPrettyPrint(KrParser* parser, KrNode* ast, void* ptr, u32 ident) {
+void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 ident) {
   const u32 spaces = 2;
 
-  switch (ast->type) {
+  switch (node->type) {
 
     case KrNodeType_literal: {
       for (u32 i = 0; i < ident; i++) {
         Print(S(" "));
       }
-      Printf("(%S\n", S("literal"));
+      Printf("'%S'\n", KrTokenString(&parser->tokenizer, node->token));
 
-      for (u32 i = 0; i < ident + spaces; i++) {
+    }break;
+
+    case KrNodeType_binaryOp: {
+      for (u32 i = 0; i < ident; i++) {
         Print(S(" "));
       }
-      Printf("'%S'\n", KrTokenString(&parser->tokenizer, ast->token));
+      Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
+
+      KrNode* lhs = KrParserGetChild(parser, node, 0);
+      KrNode* rhs = KrParserGetChild(parser, node, 1);
+      KrParserPrettyPrint(parser, lhs, ident+spaces);
+      KrParserPrettyPrint(parser, rhs, ident+spaces);
 
       for (u32 i = 0; i < ident; i++) {
         Print(S(" "));
       }
-      Printf("%S)\n", S("literal"));
+      Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
 
     }break;
 
   }
 
+}
+
+fn KrPrecedence KrInfixPrecendence(KrTokenType type) {
+  Assert(KrIsOperator(type));
+
+  switch (type) {
+    case KrTokenType_minus:
+    case KrTokenType_plus: {
+      return (KrPrecedence){ .left = 3, .right = 4 };
+    }break;
+
+    case KrTokenType_star:
+    case KrTokenType_slash: {
+      return (KrPrecedence){ .left = 7, .right = 8 };
+    }break;
+  }
+
+  Assert(!"Missing operator precedence");
+}
+
+fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index) {
+  return (KrNode*)(parser->base + parent->children + (index * sizeof(KrNode)));
 }

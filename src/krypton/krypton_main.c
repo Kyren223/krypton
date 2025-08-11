@@ -1,6 +1,12 @@
 // Copyright (c) Kyren223
 // Licensed under the MIT license (https://opensource.org/license/mit/)
 
+////////////////////////////////
+// NOTE(kyren): TODO notes
+// 
+// bug fixes
+// [ ] passing "22" parses it as just "2", fix this
+
 /// --- Includes --- ///
 
 /// --- Headers --- ///
@@ -44,7 +50,7 @@ fn i32 KryptonMain(i32 argc, String* argv) {
 }
 
 fn void Repl(Arena* arena) {
-  for (;;) {
+  while (true) {
     Temp temp = TempBegin(arena);
 
     Printf("> ");
@@ -69,7 +75,7 @@ fn void Repl(Arena* arena) {
     parser.tokenizer.filename = S("REPL");
     parser.tokenizer.src = line;
     KrNode* ast = KrParse(&parser);
-    KrParserPrettyPrint(&parser, ast, ast, 0);
+    KrParserPrettyPrint(&parser, ast, 0);
 
     TempEnd(temp);
   }

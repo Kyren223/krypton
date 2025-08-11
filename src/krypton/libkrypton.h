@@ -91,6 +91,7 @@ global KrKeywordEntry kr_keyword_entries[] = {
 };
 
 KrToken KrTokenizerNext(KrTokenizer* tokenizer);
+KrToken KrTokenizerPeek(KrTokenizer tokenizer);
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token);
 void KrTokenizerPrettyPrint(Arena* arena, KrTokenizer* tokenizer, char sep, char end);
 void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end);
@@ -104,6 +105,7 @@ enum KrNodeType {
   // KrNodeType_,
   KrNodeType_none = 0,
   KrNodeType_literal,
+  KrNodeType_binaryOp,
 };
 
 struct KrNode {
@@ -119,9 +121,15 @@ StaticAssert(sizeof(KrNode) == 12, kr_expected_8_byte_node);
 struct KrParser {
   KrTokenizer tokenizer;
   Arena* arena;
+  u64 base;
+};
+
+struct KrPrecedence {
+  u8 left;
+  u8 right;
 };
 
 KrNode* KrParse(KrParser* parser);
-void KrParserPrettyPrint(KrParser* parser, KrNode* ast, void* ptr, u32 ident);
+void KrParserPrettyPrint(KrParser* parser, KrNode* ast, u32 ident);
 
 #endif

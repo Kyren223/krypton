@@ -15,6 +15,7 @@ typedef struct KrKeywordEntry KrKeywordEntry;
 typedef enum KrNodeType KrNodeType;
 typedef struct KrNode KrNode;
 typedef struct KrParser KrParser;
+typedef struct KrPrecedence KrPrecedence;
 
 #endif
 
@@ -34,9 +35,13 @@ fn b32 KrIsIdentifier(char c);
 fn b32 KrIsNumberStart(char c);
 fn b32 KrIsNumber(char c, u8 base);
 fn b32 KrIsAtEnd(KrTokenizer* tokenizer);
+fn b32 KrIsLiteral(KrTokenType type);
+fn b32 KrIsOperator(KrTokenType type);
 
 /// --- Parser --- ///
 
-fn KrNode* KrParseExpr(KrParser* parser);
+fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence);
+fn KrPrecedence KrInfixPrecendence(KrTokenType type);
+fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index);
 
 #endif
