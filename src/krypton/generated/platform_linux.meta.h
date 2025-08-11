@@ -1,26 +1,27 @@
 // This header is generated, DO NOT EDIT!
 
 #ifdef PLATFORM_LINUX_DEFS
-typedef struct  File File;
+
+typedef struct File File;
 
 #endif
 
 #ifdef PLATFORM_LINUX_FUNCTIONS
 
-/// --- Includes --- //
+/// --- Includes --- ///
 
-/// --- OS Entry --- //
+/// --- OS Entry --- ///
 
-/// --- OS Info --- //
+/// --- OS Info --- ///
 
-/// --- Allocation API --- //
+/// --- Allocation API --- ///
 
-/// --- Memory API --- //
+/// --- Memory API --- ///
 
-/// --- IO API --- //
+/// --- IO API --- ///
 
-/// --- File API --- //
+/// --- File API --- ///
 
-/// --- Abort --- //
+/// --- Abort --- ///
 
 #endif

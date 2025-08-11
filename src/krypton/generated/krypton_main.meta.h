@@ -6,14 +6,15 @@
 
 #ifdef KRYPTON_MAIN_FUNCTIONS
 
-/// --- Includes --- //
+/// --- Includes --- ///
 
-/// --- Headers --- //
+/// --- Headers --- ///
 
-/// --- C/C++ Files --- //
+/// --- C/C++ Files --- ///
 
-/// --- Entry Point --- //
-fn i32  KryptonMain(i32 argc, String* argv);
-fn void Repl       (Arena* arena);
+/// --- Entry Point --- ///
+
+fn i32 KryptonMain(i32 argc, String* argv);
+fn void Repl(Arena* arena);
 
 #endif

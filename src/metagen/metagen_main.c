@@ -1,213 +1,131 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-typedef struct Pad
-{
-	int first;
-	int second;
-} Pad;
+typedef struct {
+  const char *keyword;
+} Keyword;
 
-int Max(int a, int b) { return a > b ? a : b; }
+static Keyword func_keywords[] = {
+  {"fn"},
+  {NULL}
+};
 
-char* ReadFileContents(char* path, int* len) {
-	if (len != 0) *len = 0;
+static Keyword type_keywords[] = {
+  {"struct"},
+  {"enum"},
+  {"union"},
+  {NULL}
+};
 
-	FILE* file = fopen(path, "rb");
-	if (!file) return 0;
-
-	int position = ftell(file);
-	fseek(file, 0, SEEK_END);
-	int fileLen = ftell(file);
-	fseek(file, position, SEEK_SET);
-
-	char *contents = malloc(fileLen + 1);
-	fread(contents, 1, fileLen, file);
-	fclose(file);
-
-	if (len != 0) *len = fileLen;
-	contents[fileLen] = 0;
-
-	return contents;
+static int starts_with(const char *s, const char *prefix) {
+  while (*prefix) {
+    if (*s++ != *prefix++) return 0;
+  }
+  return 1;
 }
 
-void GenFunctionPrototypes(char* srcPath, char* destPath, char* define, int append) {
-	int fileLen = 0;
-	char* src = ReadFileContents(srcPath, &fileLen);
-	if (src == 0) return;
-
-	FILE *file = append ? fopen(destPath, "a") : fopen(destPath, "w");
-	if (!append) {
-		fprintf(file, "// This header is generated, DO NOT EDIT!\n");
-	}
-	fprintf(file, "\n#ifdef %s", define);
-
-	struct Keyword { char* str; int len; char end; int track; char* append; int endOffset; } keywords[] = {
-		{ .str = "fn", .len = 2, .end = ')', .append = ";" },
-		{ .str = "pub fn", .len = 6, .end = ')', .append = ";" },
-		{ .str = "/// ---", .len = 7, .end = '\n', .append = "", .endOffset = -2 },
-	};
-
-	int padCount = 0;
-	Pad pads[1024] = {0};
-
-	int count = -1;
-	while (++count < fileLen) {
-		for (int i = 0; i < 3; ++i) {
-			struct Keyword* kw = keywords + i;
-			if (src[count] != kw->str[kw->track++]) kw->track = 0;
-			if (kw->track == kw->len) {
-				int copyStart = (count - kw->track);
-				if (copyStart == 0 || src[copyStart - 1] == '\r' || src[copyStart - 1] == '\n') {
-					if (i == 2) {
-						++padCount;
-					} else {
-						int spaceCount = 0;
-						while (spaceCount < 2) {
-							if (src[count] == ' ' || src[count] == '\t') ++spaceCount;
-							++count;
-						}
-						int len = (count - copyStart);
-						pads[padCount].first = Max(len, pads[padCount].first);
-
-						while (src[count++] != '(');
-						len = (count - copyStart - len);
-						pads[padCount].second = Max(len, pads[padCount].second);
-					}
-					while (src[count++] != kw->end);
-				}
-				kw->track = 0;
-			}
-		}
-	}
-
-	int padAt = 0;
-	count = -1;
-	while (++count < fileLen) {
-		for (int i = 0; i < 3; ++i) {
-			struct Keyword* kw = keywords + i;
-			if (src[count] != kw->str[kw->track++]) kw->track = 0;
-			if (kw->track == kw->len) {
-				int copyStart = (count - kw->track);
-				if (copyStart == 0 || src[copyStart - 1] == '\r' || src[copyStart - 1] == '\n') {
-					if (i == 2) {
-						fprintf(file, "\n");
-						while (src[count++] != kw->end);
-						fprintf(file, "%.*s%s", (count - copyStart + kw->endOffset), (src + copyStart), kw->append);
-						++padAt;
-					} else {
-						Pad pad = pads[padAt];
-
-						int spaceCount = 0;
-						while (spaceCount < 2) {
-							if (src[count] == ' ' || src[count] == '\t') ++spaceCount;
-							++count;
-						}
-						int len = (count - copyStart);
-						fprintf(file, "%.*s", len, (src + copyStart));
-						int extra1 = (pad.first - len);
-						for (int j = 0; j < extra1; ++j) {
-							fprintf(file, " ");
-						}
-						copyStart += len;
-
-						// --
-
-						while (src[count++] != '(');
-						len = (count - copyStart - 1);
-						fprintf(file, "%.*s", len, (src + copyStart));
-						int extra2 = (pad.second - len - 1);
-						for (int j = 0; j < extra2; ++j) {
-							fprintf(file, " ");
-						}
-						copyStart += len;
-
-						// --
-
-						int loop = 1;
-						while (loop) {
-							if (src[count] == '\n') {
-								// Pad function arguments that go into new line
-								++count;
-								fprintf(file, "%.*s", (count - copyStart), (src + copyStart));
-								len = (count - copyStart);
-								copyStart += len;
-
-								int extra = extra1 + extra2;
-								while (extra-- > 0) {
-									fprintf(file, " ");
-								}
-							} else if (src[count] == kw->end) {
-								loop = 0;
-							}
-							++count;
-						}
-						fprintf(file, "%.*s%s", (count - copyStart + kw->endOffset), (src + copyStart), kw->append);
-					}
-				}
-				kw->track = 0;
-			}
-		}
-	}
-
-	fprintf(file, "\n\n#endif\n");
-
-	free(src);
-	fclose(file);
+static void trim(char *s) {
+  char *p = s;
+  while (isspace((unsigned char)*p)) p++;
+  if (p != s) memmove(s, p, strlen(p) + 1);
+  for (char *end = s + strlen(s) - 1; end >= s && isspace((unsigned char)*end); *end-- = '\0');
 }
 
-void GenDefsPrototypes(char* srcPath, char* destPath, char* define) {
-	int fileLen = 0;
-	char* src = ReadFileContents(srcPath, &fileLen);
-	if (src == 0) return;
+static int match_keyword(const char *line, Keyword *kwlist) {
+  for (int i = 0; kwlist[i].keyword; i++) {
+    if (starts_with(line, kwlist[i].keyword) &&
+      isspace((unsigned char)line[strlen(kwlist[i].keyword)])) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
-	FILE* file = fopen(destPath, "w");
-	fprintf(file, "// This header is generated, DO NOT EDIT!\n");
-	fprintf(file, "\n#ifdef %s\n", define);
+static void GenDefsPrototypes(const char *infile, const char *outfile, const char *guard) {
+  FILE *in = fopen(infile, "r");
+  if (!in) { perror(infile); exit(1); }
+  FILE *out = fopen(outfile, "w");
+  if (!out) { perror(outfile); exit(1); }
 
-	struct Keyword { char* str; int len; int track; char* prepend; char* append; int endOffset; } keywords[] = {
-		{ .str = "struct ", .len = 7, .prepend = "typedef ", .append = ";", .endOffset = -1 },
-		{ .str = "enum ", .len = 5, .prepend = "typedef ", .append = ";", .endOffset = -1 },
-		{ .str = "union ", .len = 6, .prepend = "typedef ", .append = ";", .endOffset = -1 },
-		{ .str = "/// ---", .len = 7, .prepend = "", .append = "", .endOffset = -1 },
-	};
+  fprintf(out, "// This header is generated, DO NOT EDIT!\n\n");
+  fprintf(out, "#ifdef %s\n\n", guard);
 
-	int count = -1;
-	while (++count < fileLen)
-	{
-		for (int i = 0; i < 4; ++i)
-		{
-			struct Keyword* kw = keywords + i;
-			if (src[count] != kw->str[kw->track++]) kw->track = 0;
-			if (kw->track == kw->len) {
-				int copyStart = count;
-				while (src[++count] != '\n');
-				if (i <= 2) {
-          // ignore existing prototypes
-					if (src[copyStart - kw->len] == '\n' && src[count + 1] == '{') {
-						fprintf(file, "%s%s%.*s%.*s%s\n",
-              kw->prepend,
-              kw->str,
-              (count - copyStart + kw->endOffset), (src + copyStart),
-              (count - copyStart + kw->endOffset), (src + copyStart),
-              kw->append
-            );
-					}
-				} else {
-					fprintf(file, "\n%s%.*s%s\n",
-            kw->str,
-            (count - copyStart + kw->endOffset), (src + copyStart),
-            kw->append
-          );
-				}
-				kw->track = 0;
-			}
-		}
-	}
+  char buf[4096];
+  int last_was_decl = 0;
+  while (fgets(buf, sizeof(buf), in)) {
+    trim(buf);
 
-	fprintf(file, "\n#endif\n");
+    if (starts_with(buf, "/// ---")) {
+      if (last_was_decl) fprintf(out, "\n");
+      fprintf(out, "%s\n\n", buf);
+      last_was_decl = 0;
+      continue;
+    }
 
-	free(src);
-	fclose(file);
+    if (match_keyword(buf, type_keywords)) {
+      char type[256];
+      if (sscanf(buf, "%*s %255s", type) == 1) {
+        char *brace = strchr(type, '{');
+        if (brace) *brace = '\0';
+        fprintf(out, "typedef %s %s %s;\n", strtok(buf, " "), type, type);
+        last_was_decl = 1;
+      }
+    }
+  }
+
+  if (last_was_decl) {
+    fprintf(out, "\n");
+  }
+  fprintf(out, "#endif\n");
+
+  fclose(in);
+  fclose(out);
+}
+
+static void GenFunctionPrototypes(const char *infile, const char *outfile, const char *guard, int append) {
+  FILE *in = fopen(infile, "r");
+  if (!in) { perror(infile); exit(1); }
+  FILE *out = fopen(outfile, append ? "a" : "w");
+  if (!out) { perror(outfile); exit(1); }
+
+  fprintf(out, "\n#ifdef %s\n\n", guard);
+
+  char buf[4096];
+  int last_was_decl = 0;
+  while (fgets(buf, sizeof(buf), in)) {
+    trim(buf);
+
+    if (starts_with(buf, "/// ---")) {
+      if (last_was_decl) fprintf(out, "\n");
+      fprintf(out, "%s\n\n", buf);
+      last_was_decl = 0;
+      continue;
+    }
+
+    if (match_keyword(buf, func_keywords)) {
+      char funcbuf[8192];
+      strcpy(funcbuf, buf);
+      while (!strchr(funcbuf, ')') && !strchr(funcbuf, '{')) {
+        if (!fgets(buf, sizeof(buf), in)) break;
+        strcat(funcbuf, buf);
+      }
+      char *brace = strchr(funcbuf, '{');
+      if (brace) *brace = '\0';
+      trim(funcbuf);
+      fprintf(out, "%s;\n", funcbuf);
+      last_was_decl = 1;
+    }
+  }
+
+  if (last_was_decl) {
+    fprintf(out, "\n");
+  }
+  fprintf(out, "#endif\n");
+
+  fclose(in);
+  fclose(out);
 }
 
 int main(void)
