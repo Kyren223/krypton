@@ -15,8 +15,7 @@
 /// --- OS Info --- ///
 
 typedef struct OsSystemInfo OsSystemInfo;
-struct OsSystemInfo
-{
+struct OsSystemInfo {
   u32 logicalProcessorCount;
   u64 pageSize;
   u64 largePageSize;

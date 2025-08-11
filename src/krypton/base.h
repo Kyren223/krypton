@@ -338,8 +338,7 @@ typedef intptr_t  iptr;
 #define S(cstr) ((String){ .value = ("" cstr), .length = sizeof("" cstr) - 1 })
 #define ToS(cstr) ((String){ .value = (cstr), .length = strlen((cstr)) })
 
-struct String 
-{
+struct String {
   char* value;
   u64 length;
 };
@@ -400,14 +399,12 @@ struct String
 
 #define ARENA_HEADER_SIZE 128
 
-enum ArenaFlags 
-{
+enum ArenaFlags {
   ArenaFlags_noChain    = (1 << 0),
   ArenaFlags_largePages = (1 << 1),
 };
 
-struct ArenaParams 
-{
+struct ArenaParams {
   ArenaFlags flags;
   u64 reserveSize;
   u64 commitSize;
@@ -416,8 +413,7 @@ struct ArenaParams
   int allocationSiteLine;
 };
 
-struct Arena 
-{
+struct Arena {
   Arena* prev;    // previous arena in chain
   Arena* current; // current arena in chain
   ArenaFlags flags;
@@ -437,8 +433,7 @@ struct Arena
 
 StaticAssert(sizeof(Arena) <= ARENA_HEADER_SIZE, arena_header_size_check);
 
-struct Temp 
-{
+struct Temp {
   Arena* arena;
   u64 pos;
 };

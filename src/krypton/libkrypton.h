@@ -12,8 +12,7 @@
 
 /// --- Tokenizer --- ///
 
-enum KrTokenizerFlags 
-{
+enum KrTokenizerFlags {
   // NOTE(kyren): indicates the current token shouldn't be
   // a literal or a keyword (char, string, number, keyword)
   KrTokenizerFlags_noLiteral = (1 << 0),
@@ -21,16 +20,14 @@ enum KrTokenizerFlags
   // KrTokenizerFlags_ = (1 << 1),
 };
 
-struct KrTokenizer 
-{
+struct KrTokenizer {
   String filename;
   String src;
   u32 current;
   KrTokenizerFlags flags;
 };
 
-enum KrTokenType 
-{
+enum KrTokenType {
   // NOTE(kyren): Single char
   KrTokenType_semicolon,
   KrTokenType_dot,
@@ -68,16 +65,14 @@ enum KrTokenType
   KrTokenType_illegalNumber,
 };
 
-struct KrToken 
-{
+struct KrToken {
   u32 index : 24;
   KrTokenType type : 8;
 };
 
 StaticAssert(sizeof(KrToken) == 4, kr_expected_4_byte_token);
 
-struct KrKeywordEntry 
-{
+struct KrKeywordEntry {
   String name;
   KrTokenType type;
 };
@@ -103,8 +98,7 @@ b32 KrIsKeyword(KrTokenType type);
 
 /// --- Parser --- ///
 
-enum KrNodeType 
-{
+enum KrNodeType {
   // KrNodeType_varDeclSimple,
   // KrNodeType_varDeclTyped,
   // KrNodeType_,
@@ -112,8 +106,7 @@ enum KrNodeType
   KrNodeType_literal,
 };
 
-struct KrNode 
-{
+struct KrNode {
   // NOTE(kyren): this is an index into an array
   // of indices into a KrNode
   u32 children : 24;
@@ -125,8 +118,7 @@ struct KrNode
 
 StaticAssert(sizeof(KrNode) == 8, kr_expected_8_byte_node);
 
-struct KrParser 
-{
+struct KrParser {
   KrTokenizer tokenizer;
   Arena* arena;
 };
