@@ -458,8 +458,10 @@ global const ArenaFlags arena_default_flags = 0;
   __VA_ARGS__})
 
 #define PushArrayNoZeroAligned(a, T, c, align) (T*)ArenaPush((a), sizeof(T) * (c), (align), __FILE__, __LINE__)
-#define PushArrayAligned(a, T, c, align) (T*)MemZero(PushArrayNoZeroAligned(a, T, c, align), sizeof(T) * (c), __FILE__, __LINE__)
+#define PushArrayAligned(a, T, c, align) (T*)MemZero(PushArrayNoZeroAligned(a, T, c, align), sizeof(T) * (c))
 #define PushArrayNoZero(a, T, c) PushArrayNoZeroAligned(a, T, c, Max(8, AlignOf(T)))
 #define PushArray(a, T, c) PushArrayAligned(a, T, c, Max(8, AlignOf(T)))
+#define PushSingleNoZero(a, T) PushArrayNoZero(a, T, 1)
+#define PushSingle(a, T) PushArray(a, T, 1)
 
 #endif

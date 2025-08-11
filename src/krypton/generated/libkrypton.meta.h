@@ -33,5 +33,6 @@ fn b32     KrIsNumber          (char c, u8 base);
 fn b32     KrIsAtEnd           (KrTokenizer* tokenizer);
 
 /// --- Parser --- //
+fn KrNode* KrParseExpr(KrParser* parser);
 
 #endif

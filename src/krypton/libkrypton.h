@@ -105,8 +105,11 @@ b32 KrIsKeyword(KrTokenType type);
 
 enum KrNodeType 
 {
-  KrNodeType_varDeclSimple,
-  KrNodeType_varDeclTyped,
+  // KrNodeType_varDeclSimple,
+  // KrNodeType_varDeclTyped,
+  // KrNodeType_,
+  KrNodeType_none = 0,
+  KrNodeType_literal,
 };
 
 struct KrNode 
@@ -114,16 +117,21 @@ struct KrNode
   // NOTE(kyren): this is an index into an array
   // of indices into a KrNode
   u32 children : 24;
-  KrNodeType : 8;
+
+  KrNodeType type : 8;
+
+  KrToken token;
 };
 
-StaticAssert(sizeof(KrNode) == 4, kr_expected_4_byte_node);
+StaticAssert(sizeof(KrNode) == 8, kr_expected_8_byte_node);
 
 struct KrParser 
 {
   KrTokenizer tokenizer;
+  Arena* arena;
 };
 
-KrNode* KrParse(KrParser* parser, Arena* arena);
+KrNode* KrParse(KrParser* parser);
+void KrParserPrettyPrint(KrParser* parser, KrNode* ast, void* ptr, u32 ident);
 
 #endif

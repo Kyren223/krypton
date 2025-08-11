@@ -500,7 +500,50 @@ b32 KrIsKeyword(KrTokenType type) {
 
 /// --- Parser --- ///
 
-KrNode* KrParse(KrParser* parser, Arena* arena) {
-  return null;
+KrNode* KrParse(KrParser* parser) {
+  return KrParseExpr(parser);
 }
 
+fn KrNode* KrParseExpr(KrParser* parser) {
+  KrToken token = KrTokenizerNext(&parser->tokenizer);
+
+  KrNode* node = PushSingle(parser->arena, KrNode);
+
+  switch (token.type) {
+
+    case KrTokenType_number: {
+      node->type = KrNodeType_literal;
+      node->token = token;
+    }break;
+
+  }
+
+  return node;
+}
+
+void KrParserPrettyPrint(KrParser* parser, KrNode* ast, void* ptr, u32 ident) {
+  const u32 spaces = 2;
+
+  switch (ast->type) {
+
+    case KrNodeType_literal: {
+      for (u32 i = 0; i < ident; i++) {
+        Print(S(" "));
+      }
+      Printf("(%S\n", S("literal"));
+
+      for (u32 i = 0; i < ident + spaces; i++) {
+        Print(S(" "));
+      }
+      Printf("'%S'\n", KrTokenString(&parser->tokenizer, ast->token));
+
+      for (u32 i = 0; i < ident; i++) {
+        Print(S(" "));
+      }
+      Printf("%S)\n", S("literal"));
+
+    }break;
+
+  }
+
+}

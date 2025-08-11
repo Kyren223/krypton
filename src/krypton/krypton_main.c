@@ -65,9 +65,11 @@ fn void Repl(Arena* arena) {
     KrTokenizerPrint(&tokenizer2, ' ', '\n');
 
     KrParser parser = {0};
+    parser.arena = temp.arena;
     parser.tokenizer.filename = S("REPL");
     parser.tokenizer.src = line;
-    KrNode* ast = KrParse(&parser, temp.arena);
+    KrNode* ast = KrParse(&parser);
+    KrParserPrettyPrint(&parser, ast, ast, 0);
 
     TempEnd(temp);
   }
