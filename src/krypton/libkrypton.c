@@ -507,11 +507,19 @@ KrNode* KrParse(KrParser* parser) {
 fn KrNode* KrParseExpr(KrParser* parser) {
   KrToken token = KrTokenizerNext(&parser->tokenizer);
 
+  // NOTE(kyren): returns zeroed memory, so 0 children by default
   KrNode* node = PushSingle(parser->arena, KrNode);
 
   switch (token.type) {
 
+    // NOTE(kyren): Literals (no children)
+
     case KrTokenType_number: {
+      node->type = KrNodeType_literal;
+      node->token = token;
+    }break;
+
+    case KrTokenType_identifier: {
       node->type = KrNodeType_literal;
       node->token = token;
     }break;

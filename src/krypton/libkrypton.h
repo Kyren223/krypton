@@ -107,16 +107,14 @@ enum KrNodeType {
 };
 
 struct KrNode {
-  // NOTE(kyren): this is an index into an array
-  // of indices into a KrNode
-  u32 children : 24;
-
-  KrNodeType type : 8;
-
   KrToken token;
+  KrNodeType type : 8;
+  u32 children : 24;
+  u16 count;
+  // NOTE(kyren): 2 padding bytes
 };
 
-StaticAssert(sizeof(KrNode) == 8, kr_expected_8_byte_node);
+StaticAssert(sizeof(KrNode) == 12, kr_expected_8_byte_node);
 
 struct KrParser {
   KrTokenizer tokenizer;
