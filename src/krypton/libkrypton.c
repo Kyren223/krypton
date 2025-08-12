@@ -3,6 +3,7 @@
 
 #include "libkrypton.h"
 #include "base.h"
+#include "platform.h"
 
 /// --- Tokenizer --- ///
 
@@ -558,8 +559,7 @@ fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
 
     // NOTE(kyren): preallocate lhs and rhs nodes
     KrNode* lhs = PushArray(parser->arena, KrNode, 2);
-    lhs->type = node->type;
-    lhs->token = node->token;
+    MemCopy(lhs, node, sizeof(KrNode));
 
     KrNode* rhs = lhs + 1;
     KrParseExpr(parser, rhs, precedence.right);
