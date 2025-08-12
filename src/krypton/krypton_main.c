@@ -5,7 +5,9 @@
 // NOTE(kyren): TODO notes
 // 
 // bug fixes
-// [ ] passing "22" parses it as just "2", fix this
+//
+// improvements
+// [ ] support floating numbers in parsing
 
 /// --- Includes --- ///
 

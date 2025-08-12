@@ -390,11 +390,12 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
       u32 index = token.index;
 
       i8 base = 10;
+      b8 isZero = tokenizer->src.value[index] == '0';
 
       while (index < tokenizer->src.length) {
         char c = tokenizer->src.value[index];
 
-        if (index-token.index == 1) {
+        if (isZero && index-token.index == 1) {
           switch (c) {
             case 'b': {
               base = 2;
@@ -406,7 +407,9 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
               base = 16;
             }break;
             default: {
-              base = -1;
+              if (!KrIsNumber(c, 10)) {
+                base = -1;
+              }
             }break;
           }
           if (base == -1) break;
