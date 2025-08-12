@@ -26,7 +26,7 @@ git_hash=$(git describe --always --dirty)
 git_hash_full=$(git rev-parse HEAD)
 
 # --- Compile/Link Line Definitions -------------------------------------------
-clang_common="-std=c99 -g -DBUILD_GIT_HASH=\"$git_hash\" -DBUILD_GIT_HASH_FULL=\"$git_hash_full\" -fdiagnostics-absolute-paths -Wall -Wpedantic -Wno-unused-function -Wno-initializer-overrides"
+clang_common="-std=c99 -g -DBUILD_GIT_HASH=\"$git_hash\" -DBUILD_GIT_HASH_FULL=\"$git_hash_full\" -fdiagnostics-absolute-paths -Wall -Wextra -Wno-unused-function -Wno-initializer-overrides -Wno-unused-parameter -Wno-sign-compare"
 clang_safe="-DBUILD_SAFE=1 -fsanitize=undefined"
 clang_debug_safe="$compiler -g -O0 -DBUILD_DEBUG=1 ${clang_safe} ${clang_common} ${auto_compile_flags}"
 clang_debug_fast="$compiler -g -O2 -DBUILD_DEBUG=1 -DBUILD_SAFE=0 ${clang_common} ${auto_compile_flags}"

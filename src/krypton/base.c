@@ -165,7 +165,7 @@ fn String StrFromTo(String s, i64 from, i64 to) {
 }
 
 fn i32 StrCmp(String s1, String s2) {
-  i32 len = Min(s1.length, s2.length);
+  u64 len = Min(s1.length, s2.length);
 
   for (u64 i = 0; i < len; i++) {
     if (s1.value[i] < s2.value[i]) {
@@ -175,7 +175,7 @@ fn i32 StrCmp(String s1, String s2) {
     }
   }
 
-  return s1.length - s2.length;
+  return (s1.length > s2.length) - (s1.length < s2.length);
 }
 
 fn b32 StrEq(String s1, String s2) {
