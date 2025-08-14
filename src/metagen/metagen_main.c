@@ -28,7 +28,7 @@ static int starts_with(const char *s, const char *prefix) {
 
 static void trim(char *s) {
   char *p = s;
-  while (isspace((unsigned char)*p)) p++;
+  while (((unsigned char)*p) == '\n') p++;
   if (p != s) memmove(s, p, strlen(p) + 1);
   for (char *end = s + strlen(s) - 1; end >= s && isspace((unsigned char)*end); *end-- = '\0');
 }
