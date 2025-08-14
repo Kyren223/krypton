@@ -542,19 +542,16 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
 
   node->type = KrNodeType_topLevelDecl;
   node->token = startToken;
-  node->count = 2;
-  KrNode* identifier = PushArray(parser->arena, KrNode, node->count);
+  KrNode* identifier = PushArray(parser->arena, KrNode, 2);
   KrNode* expr = identifier + 1;
+  FlagSet(expr->data, KrNodeFlags_lastChild);
   node->children = KrParserChildIndex(parser, identifier);
-
-  b8 isConst;
-  // TODO(kyren): allow for optional pub which sets the pub flag
   
+  // TODO(kyren): allow for optional pub which sets the pub flag
+
   if (startToken.type == KrTokenType_const) {
-    isConst = true;
-  } else if (startToken.type == KrTokenType_var) {
-    isConst = false;
-  } else {
+    FlagSet(node->data, KrDataDecl_const);
+  } else if (startToken.type != KrTokenType_var) {
     // TODO(kyren): handle parsing errors
     UNREACHABLE();
   }
@@ -627,11 +624,11 @@ fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
 
     KrNode* rhs = lhs + 1;
     KrParseExpr(parser, rhs, precedence.right);
+    FlagSet(rhs->data, KrNodeFlags_lastChild);
 
     node->type = KrNodeType_binaryOp;
     node->token = opToken;
     node->children = KrParserChildIndex(parser, lhs);
-    node->count = 2;
   }
 
   return node;

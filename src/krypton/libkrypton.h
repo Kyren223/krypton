@@ -112,12 +112,25 @@ enum KrNodeType {
   KrNodeType_identifier,
 };
 
+enum KrDataDecl {
+  KrDataDecl_pub   = (1 << 0),
+  KrDataDecl_const = (1 << 1),
+};
+
+enum KrNodeFlags {
+  KrNodeFlags_lastChild = (1 << 31),
+};
+
+global const u32 kr_node_flags_count = 1;
+global const u32 kr_node_flags_mask = KrNodeFlags_lastChild;
+
 struct KrNode {
   KrToken token;
   KrNodeType type : 8;
   u32 children : 24;
-  u16 count;
-  // NOTE(kyren): 2 padding bytes
+
+  // NOTE(kyren): depends on the type, last N bits are always KrNodeFlags
+  u32 data;
 };
 
 StaticAssert(sizeof(KrNode) == 12, kr_expected_8_byte_node);

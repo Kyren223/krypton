@@ -13,6 +13,8 @@ typedef struct KrKeywordEntry KrKeywordEntry;
 /// --- Parser --- ///
 
 typedef enum KrNodeType KrNodeType;
+typedef enum KrDataDecl KrDataDecl;
+typedef enum KrNodeFlags KrNodeFlags;
 typedef struct KrNode KrNode;
 typedef struct KrParser KrParser;
 typedef struct KrPrecedence KrPrecedence;
