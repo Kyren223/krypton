@@ -646,14 +646,13 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
         Print(S(" "));
       }
       Printf("'%S'\n", KrTokenString(&parser->tokenizer, node->token));
-
     }break;
 
     case KrNodeType_binaryOp: {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
+      Printf("(binaryOp '%S'\n", KrTokenString(&parser->tokenizer, node->token));
 
       KrNode* lhs = KrParserGetChild(parser, node, 0);
       KrNode* rhs = KrParserGetChild(parser, node, 1);
@@ -663,8 +662,14 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
+      Printf(")\n");
+    }break;
 
+    case KrNodeType_identifier: {
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      Printf("(identifier '%S')\n", KrTokenString(&parser->tokenizer, node->token));
     }break;
 
     case KrNodeType_topLevelDecl: {
@@ -672,18 +677,18 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
         Print(S(" "));
       }
       String constness = KrTokenString(&parser->tokenizer, node->token);
-      String ident = KrTokenString(&parser->tokenizer, KrParserGetChild(parser, node, 0)->token);
-      Printf("(%S %S\n", constness, ident);
+      Printf("(topLevelDecl %S\n", constness);
 
       KrNode* expr = KrParserGetChild(parser, node, 1);
+      KrNode* identifier = KrParserGetChild(parser, node, 0);
+      KrParserPrettyPrint(parser, identifier, indent+spaces);
       KrParserPrettyPrint(parser, expr, indent+spaces);
 
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      Printf("%S %S)\n", constness, ident);
-
-    }break;
+      Printf(")\n");
+   }break;
 
   }
 
