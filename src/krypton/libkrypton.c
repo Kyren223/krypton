@@ -291,6 +291,9 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_var: {
       return S("<var>");
     }break;
+    case KrTokenType_pub: {
+      return S("<pub>");
+    }break;
     case KrTokenType_fn: {
       return S("<fn>");
     }break;
@@ -439,6 +442,7 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     // NOTE(kyren): keywords
     case KrTokenType_const:
     case KrTokenType_var:
+    case KrTokenType_pub:
     case KrTokenType_fn:
     case KrTokenType_return:
     case KrTokenType_i32: {
@@ -547,7 +551,10 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
   FlagSet(expr->data, KrNodeFlags_lastChild);
   node->children = KrParserChildIndex(parser, identifier);
   
-  // TODO(kyren): allow for optional pub which sets the pub flag
+  if (startToken.type == KrTokenType_pub) {
+    FlagSet(node->data, KrDataDecl_pub);
+    startToken = KrTokenizerNext(&parser->tokenizer);
+  }
 
   if (startToken.type == KrTokenType_const) {
     FlagSet(node->data, KrDataDecl_const);
@@ -673,8 +680,9 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      String constness = KrTokenString(&parser->tokenizer, node->token);
-      Printf("(topLevelDecl %S\n", constness);
+      String isPub = FlagExists(node->data, KrDataDecl_pub) ? S("pub") : S("");
+      String isConst = FlagExists(node->data, KrDataDecl_const) ? S("const") : S("");
+      Printf("(topLevelDecl %S %S\n", isPub, isConst);
 
       KrNode* expr = KrParserGetChild(parser, node, 1);
       KrNode* identifier = KrParserGetChild(parser, node, 0);

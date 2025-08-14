@@ -54,6 +54,7 @@ enum KrTokenType {
   // NOTE(kyren): Keywords
   KrTokenType_const,
   KrTokenType_var,
+  KrTokenType_pub,
   KrTokenType_fn,
   KrTokenType_return,
   KrTokenType_i32,
@@ -87,6 +88,7 @@ global u32 kr_end_keyword = KrTokenType_eof;
 global KrKeywordEntry kr_keyword_entries[] = {
   {S("const"), KrTokenType_const},
   {S("var"), KrTokenType_var},
+  {S("pub"), KrTokenType_pub},
   {S("fn"), KrTokenType_fn},
   {S("return"), KrTokenType_return},
   {S("i32"), KrTokenType_i32},
