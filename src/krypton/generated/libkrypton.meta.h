@@ -40,8 +40,10 @@ fn b32 KrIsOperator(KrTokenType type);
 
 /// --- Parser --- ///
 
+fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node);
 fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence);
 fn KrPrecedence KrInfixPrecendence(KrTokenType type);
 fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index);
+fn u32 KrParserChildIndex(KrParser* parser, KrNode* child);
 
 #endif

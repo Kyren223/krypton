@@ -288,6 +288,9 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_const: {
       return S("<const>");
     }break;
+    case KrTokenType_var: {
+      return S("<var>");
+    }break;
     case KrTokenType_fn: {
       return S("<fn>");
     }break;
@@ -435,6 +438,7 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
 
     // NOTE(kyren): keywords
     case KrTokenType_const:
+    case KrTokenType_var:
     case KrTokenType_fn:
     case KrTokenType_return:
     case KrTokenType_i32: {
@@ -529,7 +533,59 @@ KrNode* KrParse(KrParser* parser) {
   KrNode* node = PushSingle(parser->arena, KrNode);
   parser->base = (u64)node;
 
-  return KrParseExpr(parser, node, 0);
+  // return KrParseExpr(parser, node, 0);
+  return KrParseTopLevel(parser, node);
+}
+
+fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
+  KrToken startToken = KrTokenizerNext(&parser->tokenizer);
+
+  node->type = KrNodeType_topLevelDecl;
+  node->token = startToken;
+  node->count = 2;
+  KrNode* identifier = PushArray(parser->arena, KrNode, node->count);
+  KrNode* expr = identifier + 1;
+  node->children = KrParserChildIndex(parser, identifier);
+
+  b8 isConst;
+  // TODO(kyren): allow for optional pub which sets the pub flag
+  
+  if (startToken.type == KrTokenType_const) {
+    isConst = true;
+  } else if (startToken.type == KrTokenType_var) {
+    isConst = false;
+  } else {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+
+  // TODO(kyren): set const flags
+
+  KrToken ident = KrTokenizerNext(&parser->tokenizer);
+  if (ident.type != KrTokenType_identifier) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+  identifier->type = KrNodeType_identifier;
+  identifier->token = ident;
+
+  // TODO(kyren); parse type here (for now just skip to =)
+
+  KrToken eq = KrTokenizerNext(&parser->tokenizer);
+  if (eq.type != KrTokenType_equal) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+
+  KrParseExpr(parser, expr, 0);
+
+  KrToken semicolon = KrTokenizerNext(&parser->tokenizer);
+  if (semicolon.type != KrTokenType_semicolon) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+
+  return node;
 }
 
 fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
@@ -544,7 +600,12 @@ fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
 
   while (true) {
     KrToken opToken = KrTokenizerPeek(parser->tokenizer);
-    if (opToken.type == KrTokenType_eof) {
+
+    // TODO(kyren): should I assume that any non-operator means the expression ended
+    // as if it were an EOF?
+    // or should I just special case the valid "end" tokens such as a semicolon
+    // in which case, this won't be self-contained
+    if (opToken.type == KrTokenType_eof || opToken.type == KrTokenType_semicolon) {
       break;
     }
 
@@ -569,20 +630,19 @@ fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence) {
 
     node->type = KrNodeType_binaryOp;
     node->token = opToken;
-    node->children = (u64)lhs - parser->base;
+    node->children = KrParserChildIndex(parser, lhs);
     node->count = 2;
   }
 
   return node;
 }
 
-void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 ident) {
+void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
   const u32 spaces = 2;
 
   switch (node->type) {
-
     case KrNodeType_literal: {
-      for (u32 i = 0; i < ident; i++) {
+      for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
       Printf("'%S'\n", KrTokenString(&parser->tokenizer, node->token));
@@ -590,20 +650,38 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 ident) {
     }break;
 
     case KrNodeType_binaryOp: {
-      for (u32 i = 0; i < ident; i++) {
+      for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
       Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
 
       KrNode* lhs = KrParserGetChild(parser, node, 0);
       KrNode* rhs = KrParserGetChild(parser, node, 1);
-      KrParserPrettyPrint(parser, lhs, ident+spaces);
-      KrParserPrettyPrint(parser, rhs, ident+spaces);
+      KrParserPrettyPrint(parser, lhs, indent+spaces);
+      KrParserPrettyPrint(parser, rhs, indent+spaces);
 
-      for (u32 i = 0; i < ident; i++) {
+      for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
       Printf("(%S\n", KrTokenString(&parser->tokenizer, node->token));
+
+    }break;
+
+    case KrNodeType_topLevelDecl: {
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      String constness = KrTokenString(&parser->tokenizer, node->token);
+      String ident = KrTokenString(&parser->tokenizer, KrParserGetChild(parser, node, 0)->token);
+      Printf("(%S %S\n", constness, ident);
+
+      KrNode* expr = KrParserGetChild(parser, node, 1);
+      KrParserPrettyPrint(parser, expr, indent+spaces);
+
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      Printf("%S %S)\n", constness, ident);
 
     }break;
 
@@ -631,4 +709,8 @@ fn KrPrecedence KrInfixPrecendence(KrTokenType type) {
 
 fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index) {
   return (KrNode*)(parser->base + parent->children + (index * sizeof(KrNode)));
+}
+
+fn u32 KrParserChildIndex(KrParser* parser, KrNode* child) {
+  return (u64)child - parser->base;
 }

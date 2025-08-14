@@ -8,6 +8,12 @@
 //
 // improvements
 // [ ] support floating numbers in parsing
+// [ ] should parse functions return their node or just write into it?
+//
+// performance
+// [ ] replace 16-bit count field with a 1-bit flag for "last child" to save 15-bits
+// [ ] parallelize per top-level decl in each file (single-pass to get top-level then workers)
+// [ ] string interning for identifiers, use 16-bit value in AST node to store ID?
 
 /// --- Includes --- ///
 

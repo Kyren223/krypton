@@ -53,6 +53,7 @@ enum KrTokenType {
 
   // NOTE(kyren): Keywords
   KrTokenType_const,
+  KrTokenType_var,
   KrTokenType_fn,
   KrTokenType_return,
   KrTokenType_i32,
@@ -85,6 +86,7 @@ global u32 kr_end_keyword = KrTokenType_eof;
 
 global KrKeywordEntry kr_keyword_entries[] = {
   {S("const"), KrTokenType_const},
+  {S("var"), KrTokenType_var},
   {S("fn"), KrTokenType_fn},
   {S("return"), KrTokenType_return},
   {S("i32"), KrTokenType_i32},
@@ -106,6 +108,8 @@ enum KrNodeType {
   KrNodeType_none = 0,
   KrNodeType_literal,
   KrNodeType_binaryOp,
+  KrNodeType_topLevelDecl,
+  KrNodeType_identifier,
 };
 
 struct KrNode {
