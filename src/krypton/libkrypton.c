@@ -134,6 +134,17 @@ KrToken KrTokenizerPeek(KrTokenizer tokenizer) {
   return KrTokenizerNext(&tokenizer);
 }
 
+// NOTE(kyren): count is 0-indexed, so 0 is the first token, 1 is the second, and so on
+KrToken KrTokenizerPeekN(KrTokenizer tokenizer, u32 count) {
+  // NOTE(kyren): pass by value so it doesn't modify the actual tokenizer
+  // this allows for just peeking without advancing
+  u32 counter = 0;
+  while (counter++ < count) {
+    KrTokenizerNext(&tokenizer);
+  }
+  return KrTokenizerNext(&tokenizer);
+}
+
 fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
   // TODO(kyren): add support for floating point numbers
 
@@ -297,6 +308,12 @@ String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_fn: {
       return S("<fn>");
     }break;
+    case KrTokenType_import: {
+      return S("<import>");
+    }break;
+    case KrTokenType_foreign: {
+      return S("<foreign>");
+    }break;
     case KrTokenType_return: {
       return S("<return>");
     }break;
@@ -444,6 +461,8 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     case KrTokenType_var:
     case KrTokenType_pub:
     case KrTokenType_fn:
+    case KrTokenType_import:
+    case KrTokenType_foreign:
     case KrTokenType_return:
     case KrTokenType_i32: {
       u32 index = token.type - kr_first_keyword;
@@ -536,10 +555,86 @@ KrNode* KrParse(KrParser* parser) {
   KrNode* node = PushSingle(parser->arena, KrNode);
   parser->base = (u64)node;
 
-  return KrParseTopLevel(parser, node);
+  return KrParseTopLevelDecl(parser, node);
 }
 
 fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
+  KrToken token = KrTokenizerPeek(parser->tokenizer);
+
+  switch (token.type) {
+    case KrTokenType_const:
+    case KrTokenType_var: {
+      return KrParseTopLevelDecl(parser, node);
+    }break;
+
+    case KrTokenType_import: {
+      return KrParseTopLevelImport(parser, node);
+    }break;
+
+    case KrTokenType_foreign: {
+      KrToken nextToken = KrTokenizerPeekN(parser->tokenizer, 1);
+      if (nextToken.type == KrTokenType_import) {
+        return KrParseTopLevelImport(parser, node);
+      } else if (nextToken.type == KrTokenType_rbrace) {
+        // TODO(kyren): implement foreign code block
+        UNREACHABLE();
+      } else {
+        // TODO(kyren): handle errors
+        UNREACHABLE();
+      }
+    }break;
+
+    default: {
+      // TODO(kyren): handle errors
+      UNREACHABLE();
+    }break;
+  }
+
+}
+
+fn KrNode* KrParseTopLevelImport(KrParser* parser, KrNode* node) {
+  KrToken startToken = KrTokenizerNext(&parser->tokenizer);
+
+  node->type = KrNodeType_topLevelImport;
+  node->token = startToken;
+  KrNode* namespace = PushArray(parser->arena, KrNode, 2);
+  KrNode* filename = namespace + 1;
+  FlagSet(filename->data, KrNodeFlags_lastChild);
+  node->children = KrParserChildIndex(parser, namespace);
+
+  if (startToken.type == KrTokenType_foreign) {
+    FlagSet(node->data, KrDataImport_foreign);
+    startToken = KrTokenizerNext(&parser->tokenizer);
+  }
+
+  if (startToken.type != KrTokenType_import) {
+    // TODO(kyren): what should we do here?
+    // we can either assert this never happens bcz all calling functions to this
+    // must verify this is an import, or we can just re-check it here
+    // and produce an error
+    UNREACHABLE();
+  }
+
+  KrToken identifier = KrTokenizerNext(&parser->tokenizer);
+  if (identifier.type != KrTokenType_identifier) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+  namespace->type = KrNodeType_identifier;
+  namespace->token = identifier;
+
+  // TODO(kyren): add string literal parsing for filename
+
+  KrToken semicolon = KrTokenizerNext(&parser->tokenizer);
+  if (semicolon.type != KrTokenType_semicolon) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+
+  return node;
+}
+
+fn KrNode* KrParseTopLevelDecl(KrParser* parser, KrNode* node) {
   KrToken startToken = KrTokenizerNext(&parser->tokenizer);
 
   node->type = KrNodeType_topLevelDecl;
@@ -560,8 +655,6 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
     // TODO(kyren): handle parsing errors
     UNREACHABLE();
   }
-
-  // TODO(kyren): set const flags
 
   KrToken ident = KrTokenizerNext(&parser->tokenizer);
   if (ident.type != KrTokenType_identifier) {

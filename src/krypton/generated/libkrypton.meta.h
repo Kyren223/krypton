@@ -14,6 +14,7 @@ typedef struct KrKeywordEntry KrKeywordEntry;
 
 typedef enum KrNodeType KrNodeType;
 typedef enum KrDataDecl KrDataDecl;
+typedef enum KrDataImport KrDataImport;
 typedef enum KrNodeFlags KrNodeFlags;
 typedef struct KrNode KrNode;
 typedef struct KrParser KrParser;
@@ -43,6 +44,8 @@ fn b32 KrIsOperator(KrTokenType type);
 /// --- Parser --- ///
 
 fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node);
+fn KrNode* KrParseTopLevelImport(KrParser* parser, KrNode* node);
+fn KrNode* KrParseTopLevelDecl(KrParser* parser, KrNode* node);
 fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence);
 fn KrPrecedence KrInfixPrecendence(KrTokenType type);
 fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index);

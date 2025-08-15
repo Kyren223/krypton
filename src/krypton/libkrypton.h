@@ -55,6 +55,8 @@ enum KrTokenType {
   KrTokenType_fn,
   KrTokenType_return,
   KrTokenType_i32,
+  KrTokenType_import,
+  KrTokenType_foreign,
 
   KrTokenType_eof,
   KrTokenType_unknown,
@@ -88,6 +90,8 @@ global KrKeywordEntry kr_keyword_entries[] = {
   {S("fn"), KrTokenType_fn},
   {S("return"), KrTokenType_return},
   {S("i32"), KrTokenType_i32},
+  {S("import"), KrTokenType_import},
+  {S("foreign"), KrTokenType_foreign},
 };
 
 KrToken KrTokenizerNext(KrTokenizer* tokenizer);
@@ -103,12 +107,17 @@ enum KrNodeType {
   KrNodeType_literal,
   KrNodeType_binaryOp,
   KrNodeType_topLevelDecl,
+  KrNodeType_topLevelImport,
   KrNodeType_identifier,
 };
 
 enum KrDataDecl {
   KrDataDecl_pub   = (1 << 0),
   KrDataDecl_const = (1 << 1),
+};
+
+enum KrDataImport {
+  KrDataImport_foreign = (1 << 0),
 };
 
 enum KrNodeFlags {
