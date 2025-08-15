@@ -557,7 +557,7 @@ void KrTokenizerPrint(KrTokenizer* tokenizer, char sep, char end) {
     if (token.type == KrTokenType_eof) {
       break;
     }
-    Printf("'%S'%c", KrTokenString(tokenizer, token), sep);
+    Printf("%S%c", KrTokenString(tokenizer, token), sep);
   }
   KrToken token = KrTokenizerNext(tokenizer);
   Printf("%S%c", KrTokenString(tokenizer, token), end);
@@ -795,7 +795,7 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      Printf("'%S'\n", KrTokenString(&parser->tokenizer, node->token));
+      Printf("%S\n", KrTokenString(&parser->tokenizer, node->token));
     }break;
 
     case KrNodeType_binaryOp: {
@@ -826,9 +826,9 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      String isPub = FlagExists(node->data, KrDataDecl_pub) ? S("pub") : S("");
-      String isConst = FlagExists(node->data, KrDataDecl_const) ? S("const") : S("");
-      Printf("(topLevelDecl %S %S\n", isPub, isConst);
+      String isPub = FlagExists(node->data, KrDataDecl_pub) ? S(" pub") : S("");
+      String isConst = FlagExists(node->data, KrDataDecl_const) ? S(" const") : S("");
+      Printf("(topLevelDecl%S%S\n", isPub, isConst);
 
       KrNode* expr = KrParserGetChild(parser, node, 1);
       KrNode* identifier = KrParserGetChild(parser, node, 0);
