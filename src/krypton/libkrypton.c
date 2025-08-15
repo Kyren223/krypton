@@ -616,6 +616,7 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
   KrToken token = KrTokenizerPeek(parser->tokenizer);
 
   switch (token.type) {
+    case KrTokenType_pub:
     case KrTokenType_const:
     case KrTokenType_var: {
       return KrParseTopLevelDecl(parser, node);
