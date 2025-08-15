@@ -135,7 +135,7 @@ KrToken KrTokenizerPeek(KrTokenizer tokenizer) {
 }
 
 fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
-  // TODO(kyren): add support for hexadecimal, underscores, etc
+  // TODO(kyren): add support for floating point numbers
 
   // TODO: parse number
   u32 start = tokenizer->current;
@@ -532,12 +532,10 @@ fn b32 KrIsOperator(KrTokenType type) {
 /// --- Parser --- ///
 
 KrNode* KrParse(KrParser* parser) {
-
   // NOTE(kyren): returns zeroed memory, so 0 children by default
   KrNode* node = PushSingle(parser->arena, KrNode);
   parser->base = (u64)node;
 
-  // return KrParseExpr(parser, node, 0);
   return KrParseTopLevel(parser, node);
 }
 
@@ -550,7 +548,7 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
   KrNode* expr = identifier + 1;
   FlagSet(expr->data, KrNodeFlags_lastChild);
   node->children = KrParserChildIndex(parser, identifier);
-  
+
   if (startToken.type == KrTokenType_pub) {
     FlagSet(node->data, KrDataDecl_pub);
     startToken = KrTokenizerNext(&parser->tokenizer);

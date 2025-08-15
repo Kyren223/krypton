@@ -16,8 +16,6 @@ enum KrTokenizerFlags {
   // NOTE(kyren): indicates the current token shouldn't be
   // a literal or a keyword (char, string, number, keyword)
   KrTokenizerFlags_noLiteral = (1 << 0),
-
-  // KrTokenizerFlags_ = (1 << 1),
 };
 
 struct KrTokenizer {
@@ -39,7 +37,6 @@ enum KrTokenType {
   KrTokenType_rparen,
   KrTokenType_lbrace,
   KrTokenType_rbrace,
-  // KrTokenType_,
 
   // NOTE(kyren): One or two chars
   KrTokenType_equal,
@@ -58,7 +55,6 @@ enum KrTokenType {
   KrTokenType_fn,
   KrTokenType_return,
   KrTokenType_i32,
-  // KrTokenType_,
 
   KrTokenType_eof,
   KrTokenType_unknown,
@@ -104,10 +100,6 @@ b32 KrIsKeyword(KrTokenType type);
 /// --- Parser --- ///
 
 enum KrNodeType {
-  // KrNodeType_varDeclSimple,
-  // KrNodeType_varDeclTyped,
-  // KrNodeType_,
-  KrNodeType_none = 0,
   KrNodeType_literal,
   KrNodeType_binaryOp,
   KrNodeType_topLevelDecl,
