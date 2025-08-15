@@ -679,6 +679,13 @@ fn KrNode* KrParseTopLevelImport(KrParser* parser, KrNode* node) {
   namespace->token = identifier;
 
   // TODO(kyren): add string literal parsing for filename
+  KrToken stringLiteral = KrTokenizerNext(&parser->tokenizer);
+  if (stringLiteral.type != KrTokenType_string) {
+    // TODO(kyren): handle parsing errors
+    UNREACHABLE();
+  }
+  filename->type = KrNodeType_literal;
+  filename->token = stringLiteral;
 
   KrToken semicolon = KrTokenizerNext(&parser->tokenizer);
   if (semicolon.type != KrTokenType_semicolon) {
@@ -795,7 +802,7 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       for (u32 i = 0; i < indent; i++) {
         Print(S(" "));
       }
-      Printf("%S\n", KrTokenString(&parser->tokenizer, node->token));
+      Printf("(literal %S)\n", KrTokenString(&parser->tokenizer, node->token));
     }break;
 
     case KrNodeType_binaryOp: {
@@ -839,7 +846,25 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
         Print(S(" "));
       }
       Printf(")\n");
-   }break;
+    }break;
+
+    case KrNodeType_topLevelImport: {
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      String isForeign = FlagExists(node->data, KrDataImport_foreign) ? S(" foreign") : S("");
+      Printf("(topLevelDecl%S\n", isForeign);
+
+      KrNode* namespace = KrParserGetChild(parser, node, 1);
+      KrNode* filename = KrParserGetChild(parser, node, 0);
+      KrParserPrettyPrint(parser, filename, indent+spaces);
+      KrParserPrettyPrint(parser, namespace, indent+spaces);
+
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      Printf(")\n");
+    }break;
 
   }
 
