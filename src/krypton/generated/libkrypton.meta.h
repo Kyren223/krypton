@@ -28,6 +28,7 @@ typedef struct KrPrecedence KrPrecedence;
 
 fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c);
 fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c);
+fn KrToken KrTokenizeString(KrTokenizer* tokenizer, char c);
 fn KrToken KrProduceToken_(KrTokenizer* tokenizer, KrTokenType type, u32 advance, u32 location);
 fn KrToken KrProduceToken1_(KrTokenizer* tokenizer, KrTokenType type);
 fn KrToken KrProduceToken2_(KrTokenizer* tokenizer, char c, KrTokenType two, KrTokenType one);

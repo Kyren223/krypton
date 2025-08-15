@@ -95,6 +95,14 @@ KrToken KrTokenizerNext(KrTokenizer* tokenizer) {
     return KrTokenizeNumber(tokenizer, c);
   }
 
+  if (c == '"') {
+    if (FlagExists(tokenizer->flags, KrTokenizerFlags_noLiteral)) {
+      // TODO(kyren): handle no literal flag by producing an appropriate error token
+      UNREACHABLE();
+    }
+    return KrTokenizeString(tokenizer, c);
+  }
+
   return KrProduceToken(KrTokenType_unknown, 1);
 }
 
@@ -148,7 +156,6 @@ KrToken KrTokenizerPeekN(KrTokenizer tokenizer, u32 count) {
 fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
   // TODO(kyren): add support for floating point numbers
 
-  // TODO: parse number
   u32 start = tokenizer->current;
 
   // NOTE(kyren): get base
@@ -211,6 +218,35 @@ fn KrToken KrTokenizeNumber(KrTokenizer* tokenizer, char c) {
   }
 
   return KrProduceTokenLoc(KrTokenType_number, 0, start);
+}
+
+fn KrToken KrTokenizeString(KrTokenizer* tokenizer, char c) {
+  // TODO(kyren): add escape sequences support
+  // TODO(kyren): consider adding backticks syntax to avoid escapes
+  // TODO(kyren): consider adding zig-like \\ syntax
+
+  u32 start = tokenizer->current;
+  tokenizer->current += 1;
+
+  while (true) {
+    if (KrIsAtEnd(tokenizer)) {
+      // TODO(kyren): produce error token for unclosed string literal
+      UNREACHABLE();
+    }
+
+    c = tokenizer->src.value[tokenizer->current];
+    if (c == '\n' || c == '\r') {
+      // TODO(kyren): produce error token for unclosed string literal
+      // string literals must be opened and closed on the same line (not multiline)
+      UNREACHABLE();
+    }
+    if (c == '"') {
+      break;
+    }
+    tokenizer->current++;
+  }
+
+  return KrProduceTokenLoc(KrTokenType_string, 1, start);
 }
 
 String KrTokenSprint(Arena* arena, KrTokenizer* tokenizer, KrToken token) {
@@ -450,10 +486,26 @@ fn String KrTokenString(KrTokenizer* tokenizer, KrToken token) {
     }break;
     case KrTokenType_char: {
       // TODO(kyren): add lengths (this is at least 3, for 'a' but might be more for '\xFF')
-      length = 1;
     }break;
     case KrTokenType_string: {
-      // TODO(kyren): add lengths
+      u32 index = token.index;
+
+      // NOTE(kyren): skip initial double quote
+      index += 1;
+
+      while (index < tokenizer->src.length) {
+        char c = tokenizer->src.value[index];
+
+        // TODO(kyren): properly handle escape sequences like \"
+        if (c == '"') {
+          break;
+        }
+        index++;
+      }
+      length = index - token.index;
+
+      // NOTE(kyren): include last double quote
+      length += 1;
     }break;
 
     // NOTE(kyren): keywords
@@ -537,7 +589,9 @@ b32 KrIsKeyword(KrTokenType type) {
 
 fn b32 KrIsLiteral(KrTokenType type) {
   // TODO(kyren): complete this with all literals
-  return type == KrTokenType_number || type == KrTokenType_identifier;
+  return type == KrTokenType_identifier ||
+         type == KrTokenType_number ||
+         type == KrTokenType_string;
 }
 
 fn b32 KrIsOperator(KrTokenType type) {
@@ -555,7 +609,7 @@ KrNode* KrParse(KrParser* parser) {
   KrNode* node = PushSingle(parser->arena, KrNode);
   parser->base = (u64)node;
 
-  return KrParseTopLevelDecl(parser, node);
+  return KrParseTopLevel(parser, node);
 }
 
 fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
