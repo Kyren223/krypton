@@ -109,7 +109,15 @@ enum KrNodeType {
   KrNodeType_topLevelDecl,
   KrNodeType_topLevelImport,
   KrNodeType_identifier,
+  KrNodeType_error,
 };
+
+enum KrNodeFlags {
+  KrNodeFlags_lastChild = (1 << 31),
+};
+
+#define kr_node_flags_count 1
+global const u32 kr_node_flags_mask = KrNodeFlags_lastChild;
 
 enum KrDataDecl {
   KrDataDecl_pub   = (1 << 0),
@@ -120,12 +128,26 @@ enum KrDataImport {
   KrDataImport_foreign = (1 << 0),
 };
 
-enum KrNodeFlags {
-  KrNodeFlags_lastChild = (1 << 31),
+enum KrDataErrorType {
+  KrDataErrorType_invalidTokenAtTopLevel,
+  KrDataErrorType_expectedTopLevelStmtGotEof,
+  KrDataErrorType_expectedForeignBlockOrImportStmtAfterForeignKeyword,
+  KrDataErrorType_expectedNamespaceAfterImportKeyword,
+  KrDataErrorType_expectedFilenameAfterNamespaceInImportStmt,
+  KrDataErrorType_missingSemicolon,
+  KrDataErrorType_expectedSemicolonToEndImportStmt,
+  // KrDataErrorType_,
+  KrDataErrorType__Max,
 };
 
-global const u32 kr_node_flags_count = 1;
-global const u32 kr_node_flags_mask = KrNodeFlags_lastChild;
+StaticAssert(((1 << (31 - kr_node_flags_count)) - 1) >= (KrDataErrorType__Max - 1), kr_expected_4_byte_data_error_type);
+
+#define KR_DATA_ERROR_LENGTH_MASK ((1 << 24) - 1)
+#define KrGetDataErrorLength(data) ((data) & KR_DATA_ERROR_LENGTH_MASK)
+
+#define KR_DATA_ERROR_TYPE_MASK ((~kr_node_flags_mask) & (~((1 << 24)-1)))
+#define KrGetDataErrorType(data) (KrDataErrorType)(((data) & KR_DATA_ERROR_TYPE_MASK) >> 24)
+#define KrSetDataErrorType(data, flag) FlagSet(data, ((flag) << 24))
 
 struct KrNode {
   KrToken token;
@@ -147,6 +169,15 @@ struct KrParser {
 struct KrPrecedence {
   u8 left;
   u8 right;
+};
+
+enum KrRecoveryLevel {
+  KrRecoveryLevel_topLevel,
+};
+
+struct KrRecoveryResult {
+  b8 isEnd;
+  b8 isStart;
 };
 
 KrNode* KrParse(KrParser* parser);

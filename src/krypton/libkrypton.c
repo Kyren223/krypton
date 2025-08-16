@@ -124,6 +124,7 @@ fn KrToken KrTokenizeIdentifier(KrTokenizer* tokenizer, char c) {
   }
 
   // NOTE(kyren): keywords
+  // OPTIMIZE(kyren): consider using a trie for faster keyword lookup
   u32 length = tokenizer->current - start;
   String identifier = (String){ .value = tokenizer->src.value + start, .length = length };
   for (u32 i = 0; i < SizeofArray(kr_keyword_entries); i++) {
@@ -606,10 +607,23 @@ fn b32 KrIsOperator(KrTokenType type) {
 
 KrNode* KrParse(KrParser* parser) {
   // NOTE(kyren): returns zeroed memory, so 0 children by default
-  KrNode* node = PushSingle(parser->arena, KrNode);
+  // KrNode* node = PushSingle(parser->arena, KrNode);
+  // parser->base = (u64)node;
+  //
+  // return KrParseTopLevel(parser, node);
+
+  u32 nodes = 3;
+
+  // NOTE(kyren): returns zeroed memory, so 0 children by default
+  KrNode* node = PushArray(parser->arena, KrNode, nodes);
   parser->base = (u64)node;
 
-  return KrParseTopLevel(parser, node);
+  KrNode* curr = node;
+  for (u32 i = 0; i < nodes; i++) {
+    KrParseTopLevel(parser, curr++);
+  }
+
+  return node;
 }
 
 fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
@@ -634,14 +648,26 @@ fn KrNode* KrParseTopLevel(KrParser* parser, KrNode* node) {
         // TODO(kyren): implement foreign code block
         UNREACHABLE();
       } else {
-        // TODO(kyren): handle errors
-        UNREACHABLE();
+        KrTokenizerNext(&parser->tokenizer); // foreign
+        KrTokenizerNext(&parser->tokenizer); // token after forein that triggered the error
+        KrNodeSetError(node, token, KrDataErrorType_expectedForeignBlockOrImportStmtAfterForeignKeyword);
+        KrRecover(parser, KrRecoveryLevel_topLevel);
+        return node;
       }
     }break;
 
+    case KrTokenType_eof: {
+      // NOTE(kyren): don't advance token so next calls also errors
+      KrNodeSetError(node, token, KrDataErrorType_expectedTopLevelStmtGotEof);
+      KrRecover(parser, KrRecoveryLevel_topLevel);
+      return node;
+    }break;
+
     default: {
-      // TODO(kyren): handle errors
-      UNREACHABLE();
+      KrTokenizerNext(&parser->tokenizer);
+      KrNodeSetError(node, token, KrDataErrorType_invalidTokenAtTopLevel);
+      KrRecover(parser, KrRecoveryLevel_topLevel); 
+      return node;
     }break;
   }
 
@@ -670,28 +696,43 @@ fn KrNode* KrParseTopLevelImport(KrParser* parser, KrNode* node) {
     UNREACHABLE();
   }
 
-  KrToken identifier = KrTokenizerNext(&parser->tokenizer);
+  KrToken identifier = KrTokenizerPeek(parser->tokenizer);
   if (identifier.type != KrTokenType_identifier) {
-    // TODO(kyren): handle parsing errors
-    UNREACHABLE();
+    KrNodeSetError(node, identifier, KrDataErrorType_expectedNamespaceAfterImportKeyword);
+    KrRecover(parser, KrRecoveryLevel_topLevel);
+    return node;
   }
+  KrTokenizerNext(&parser->tokenizer); // consume identifier
   namespace->type = KrNodeType_identifier;
   namespace->token = identifier;
 
   // TODO(kyren): add string literal parsing for filename
-  KrToken stringLiteral = KrTokenizerNext(&parser->tokenizer);
+  KrToken stringLiteral = KrTokenizerPeek(parser->tokenizer);
   if (stringLiteral.type != KrTokenType_string) {
-    // TODO(kyren): handle parsing errors
-    UNREACHABLE();
+    KrNodeSetError(node, stringLiteral, KrDataErrorType_expectedFilenameAfterNamespaceInImportStmt);
+    KrRecover(parser, KrRecoveryLevel_topLevel);
+    return node;
   }
+  KrTokenizerNext(&parser->tokenizer); // consume string literal
   filename->type = KrNodeType_literal;
   filename->token = stringLiteral;
 
-  KrToken semicolon = KrTokenizerNext(&parser->tokenizer);
+  KrToken semicolon = KrTokenizerPeek(parser->tokenizer);
   if (semicolon.type != KrTokenType_semicolon) {
-    // TODO(kyren): handle parsing errors
-    UNREACHABLE();
+    KrToken token = KrTokenizerPeek(parser->tokenizer);
+    KrRecoveryResult result = KrIsRecoveryToken(token.type, KrRecoveryLevel_topLevel);
+
+    Assert(result.isEnd == false);
+    if (result.isStart) {
+      KrNodeSetError(node, semicolon, KrDataErrorType_missingSemicolon);
+    } else {
+      KrNodeSetError(node, semicolon, KrDataErrorType_expectedSemicolonToEndImportStmt);
+    }
+
+    KrRecover(parser, KrRecoveryLevel_topLevel);
+    return node;
   }
+  KrTokenizerNext(&parser->tokenizer); // consume ;
 
   return node;
 }
@@ -866,6 +907,47 @@ void KrParserPrettyPrint(KrParser* parser, KrNode* node, u32 indent) {
       Printf(")\n");
     }break;
 
+    case KrNodeType_error: {
+      for (u32 i = 0; i < indent; i++) {
+        Print(S(" "));
+      }
+      String err = {0};
+      switch (KrGetDataErrorType(node->data)) {
+        case KrDataErrorType_invalidTokenAtTopLevel: {
+          err = S("invalidTokenAtTopLevel");
+        }break;
+
+        case KrDataErrorType_expectedTopLevelStmtGotEof: {
+          err = S("expectedTopLevelStmtGotEof");
+        }break;
+
+        case KrDataErrorType_expectedForeignBlockOrImportStmtAfterForeignKeyword: {
+          err = S("expectedForeignBlockOrImportStmtAfterForeignKeyword");
+        }break;
+
+        case KrDataErrorType_expectedNamespaceAfterImportKeyword: {
+          err = S("expectedNamespaceAfterImportKeyword");
+        }break;
+          
+        case KrDataErrorType_expectedFilenameAfterNamespaceInImportStmt: {
+          err = S("expectedFilenameAfterNamespaceInImportStmt");
+        }break;
+
+        case KrDataErrorType_missingSemicolon: {
+          err = S("missingSemicolon");
+        }break;
+
+        case KrDataErrorType_expectedSemicolonToEndImportStmt: {
+          err = S("expectedSemicolonToEndImportStmt");
+        }break;
+
+        case KrDataErrorType__Max: {
+          UNREACHABLE();
+        }break;
+      }
+      Assert(err.length != 0);
+      Printf("(error %S)\n", err);
+    }break;
   }
 
 }
@@ -894,4 +976,51 @@ fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index) {
 
 fn u32 KrParserChildIndex(KrParser* parser, KrNode* child) {
   return (u64)child - parser->base;
+}
+
+fn void KrNodeSetError(KrNode* node, KrToken errorToken, KrDataErrorType error) {
+  node->type = KrNodeType_error;
+  node->token = errorToken;
+  KrSetDataErrorType(node->data, error);
+}
+
+fn void KrRecover(KrParser* parser, KrRecoveryLevel level) {
+  while (true) {
+    KrToken token = KrTokenizerPeek(parser->tokenizer);
+
+    KrRecoveryResult result = KrIsRecoveryToken(token.type, level);
+    if (result.isEnd) {
+      KrTokenizerNext(&parser->tokenizer);
+      break;
+    } else if (result.isStart) {
+      break;
+    }
+
+    // NOTE(kyren): not a recovery token, consume and continue
+    KrTokenizerNext(&parser->tokenizer);
+  }
+}
+
+fn KrRecoveryResult KrIsRecoveryToken(KrTokenType type, KrRecoveryLevel level) {
+  switch (level) {
+    case KrRecoveryLevel_topLevel: {
+      switch (type) {
+        // NOTE(kyren): end tokens
+        case KrTokenType_semicolon: {
+          return (KrRecoveryResult){ .isStart = false, .isEnd = true };
+        }break;
+
+        // NOTE(kyren): start tokens
+        case KrTokenType_const:
+        case KrTokenType_var:
+        case KrTokenType_eof: {
+          return (KrRecoveryResult){ .isStart = true, .isEnd = false };
+        }break;
+
+        default: {
+          return (KrRecoveryResult){ .isStart = false, .isEnd = false };
+        }break;
+      }
+    }break;
+  }
 }

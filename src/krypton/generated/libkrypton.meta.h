@@ -13,12 +13,15 @@ typedef struct KrKeywordEntry KrKeywordEntry;
 /// --- Parser --- ///
 
 typedef enum KrNodeType KrNodeType;
+typedef enum KrNodeFlags KrNodeFlags;
 typedef enum KrDataDecl KrDataDecl;
 typedef enum KrDataImport KrDataImport;
-typedef enum KrNodeFlags KrNodeFlags;
+typedef enum KrDataErrorType KrDataErrorType;
 typedef struct KrNode KrNode;
 typedef struct KrParser KrParser;
 typedef struct KrPrecedence KrPrecedence;
+typedef enum KrRecoveryLevel KrRecoveryLevel;
+typedef struct KrRecoveryResult KrRecoveryResult;
 
 #endif
 
@@ -51,5 +54,8 @@ fn KrNode* KrParseExpr(KrParser* parser, KrNode* node, u8 minPrecedence);
 fn KrPrecedence KrInfixPrecendence(KrTokenType type);
 fn KrNode* KrParserGetChild(KrParser* parser, KrNode* parent, u16 index);
 fn u32 KrParserChildIndex(KrParser* parser, KrNode* child);
+fn void KrNodeSetError(KrNode* node, KrToken errorToken, KrDataErrorType error);
+fn void KrRecover(KrParser* parser, KrRecoveryLevel level);
+fn KrRecoveryResult KrIsRecoveryToken(KrTokenType type, KrRecoveryLevel level);
 
 #endif

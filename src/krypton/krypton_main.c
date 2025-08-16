@@ -9,6 +9,7 @@
 // improvements
 // [ ] support floating numbers in parsing
 // [ ] should parse functions return their node or just write into it?
+// [ ] compress pretty printing of AST nodes
 //
 // performance
 // [ ] parallelize per top-level decl in each file (single-pass to get top-level then workers)
@@ -85,7 +86,9 @@ fn void Repl(Arena* arena) {
     parser.tokenizer.filename = S("REPL");
     parser.tokenizer.src = line;
     KrNode* ast = KrParse(&parser);
-    KrParserPrettyPrint(&parser, ast, 0);
+    for (u32 i = 0; i < 3; i++) {
+      KrParserPrettyPrint(&parser, ast++, 0);
+    }
 
     TempEnd(temp);
   }
